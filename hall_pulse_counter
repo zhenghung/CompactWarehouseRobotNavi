@@ -54,6 +54,6 @@ void loop()
   }
 
   else if (state == 2){
-    Serial.println("STOP HASIF");
+    Serial.println("STOP");
   }
 }
