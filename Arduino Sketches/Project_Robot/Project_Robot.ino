@@ -13,11 +13,11 @@ int RightWheelRelayState = 0; // 1 = relay is state 1, wheels rotate in backward
 int RobotState = 0; // Set the robot to only accept command when it is not moving
 int RobotWidth = 0;
 int val;  // used to store hall sensor values
-int thresh = 500; // threshold value set for hall sensor values
+int thresh = 100; // threshold value set for hall sensor values
 int count = 0;  // counter for hall sensor pulses detected
 boolean fromLow = true; 
 const float cir = 518.36; // circumference of wheel in mm
-float dist; // distance to travel
+int dist; // distance to travel
 float pulse_count;  // converting distance to travel into number of pulses where 518.36mm is equivalent to 15 pulses
 int state = 0; 
 
@@ -37,72 +37,65 @@ void loop() {
   // put your main code here, to run repeatedly:
   if (RobotState == 0) {
     if (Serial.available() > 0) {
-      dist = Serial.read();
+      dist = Serial.parseInt();
       Serial.print("Received: ");
       Serial.println(dist, DEC);
       RobotState = 1;
-      Forward();
-      Stop();
+      if (dist < 0){
+        Backward();
+      }else{
+        Forward();
+      }
+      val = analogRead(LeftMotorHall);
+      Serial.println(val);
+      StopWhenReach();
     }
+
   }
 }
 
 void Forward() {
   LeftWheelRelayState = 0;
   RightWheelRelayState = 0;
-  digitalWrite(MotorSpeed, 100);
+  digitalWrite(MotorSpeed, HIGH);
 }
 
 void Backward()  {
   LeftWheelRelayState = 1;
   RightWheelRelayState = 1;  
-  digitalWrite(MotorSpeed, 100);
+  digitalWrite(LeftWheelRelay, HIGH);
+  digitalWrite(MotorSpeed, HIGH);
 }
 
-void Stop() {
-  pulse_count = (dist/cir)*15;  // converting distance to number of pulse
-  
-  if (state == 0){
-    Serial.println("START");
-    Serial.println(pulse_count);
-    count = 0;
-    state = 1;
-  }
-  else if (state == 1) {
-    val = analogRead(LeftMotorHall);
-    //Serial.println(val);
+void StopWhenReach() {
+  pulse_count = (abs(dist)/cir)*15;  // converting distance to number of pulse
+  count = 0;
+  while(count < pulse_count) {
+    val = analogRead(A0);
     if (val >= thresh) {
-      digitalWrite(outputPin, HIGH);
       if (fromLow == true) {
-        Serial.println("change to HIGH");
         count++;
+        Serial.println(count);
         fromLow = false;
-      }
+     }
     }
     else {
-      digitalWrite(outputPin, LOW);
       fromLow = true;
     }
-    if (count >= pulse_count) {
-      state = 2;
-    } 
-    Serial.print("COUNT");
-    Serial.println(count);
-  }
-  else if (state == 2) {
-    Serial.println("STOP");
-  }
+  } 
+  Serial.println("STOP");
+  digitalWrite(MotorSpeed, LOW);
   RobotState = 0;
 }
 
 void ClockwiseRotation()  {
   LeftWheelRelayState = 0;
   RightWheelRelayState = 1;
-  digitalWrite(MotorSpeed, 100);
+  digitalWrite(MotorSpeed, HIGH);
 }
 
 void AntiClockwiseRotation()  {
   LeftWheelRelayState = 1;
   RightWheelRelayState = 0;
-  digitalWrite(MotorSpeed, 100);
+  digitalWrite(MotorSpeed, HIGH);
 }
