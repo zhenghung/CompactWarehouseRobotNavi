@@ -4,35 +4,68 @@
  */
 
 #include <ros.h>
-#include <std_msgs/Empty.h>
+#include <std_msgs/Int32.h>
 
-int state = 0;
+int state = 1;
+int brightness = 0;
 ros::NodeHandle  nh;
 
-void messageCb( const std_msgs::Empty& toggle_msg){
-//  digitalWrite(13, HIGH-digitalRead(13));   // blink the led
-  state = !state;
+const int whiteled = 11;
+const int greenled = 10;
+int led = whiteled;
+
+void setup();
+void offAll();
+
+void brightnessChange( const std_msgs::Int32& msg){
+  offAll();
+  brightness = msg.data;
 }
 
-ros::Subscriber<std_msgs::Empty> sub("toggle_led", &messageCb );
+void stateChange( const std_msgs::Int32& msg){
+  offAll();
+  state = msg.data;
+}
+void ledChange( const std_msgs::Int32& msg){
+  offAll();
+  if (msg.data == 1){
+    led = whiteled;
+  }else{
+    led = greenled;
+  }
+}
+
+ros::Subscriber<std_msgs::Int32> sub("brightness", &brightnessChange );
+ros::Subscriber<std_msgs::Int32> sub2("state", &stateChange );
+ros::Subscriber<std_msgs::Int32> sub3("led", &ledChange );
+
 
 void setup()
 { 
-  pinMode(13, OUTPUT);
+  pinMode(whiteled, OUTPUT);
+  pinMode(greenled, OUTPUT);
   nh.initNode();
   nh.subscribe(sub);
-}
+  nh.subscribe(sub2);
+  nh.subscribe(sub3);
 
+}
+void offAll(){
+  analogWrite(whiteled, 0);
+  analogWrite(greenled, 0);
+}
 void loop()
 {  
   nh.spinOnce();
   if (state == 1){
-    digitalWrite(13, HIGH-digitalRead(13));
+    analogWrite(led, brightness);
     delay(300);
-    digitalWrite(13, LOW-digitalRead(13));
+    analogWrite(led, 0);
     delay(300);
+  }else if(state == 2){
+    analogWrite(led, brightness);
   }else{
-    digitalWrite(13, LOW);
+    analogWrite(led, 0);
   }
   delay(1);
 }
