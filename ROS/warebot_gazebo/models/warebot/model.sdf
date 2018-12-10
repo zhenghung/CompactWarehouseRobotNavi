@@ -1,0 +1,184 @@
+<?xml version='1.0'?>
+<sdf version="1.5">
+	<model name="warebot">
+  	<static>false</static>
+    <link name="chassis">
+      <inertial>
+        <pose>0 0 0.1 0 0 0</pose>
+        <mass>50</mass>
+        <inertia>
+          <!-- http://gazebosim.org/tutorials?tut=inertia&cat=build_robot -->
+          <!-- x=0.5 y=0.5 z=0.207-->
+         	<ixx>1.215</ixx>       <!-- for a box: ixx = 0.083 * mass * (y*y + z*z) -->
+          <ixy>0.0</ixy>         <!-- for a box: ixy = 0 -->
+          <ixz>0.0</ixz>         <!-- for a box: ixz = 0 -->
+          <iyy>1.215</iyy>       <!-- for a box: iyy = 0.083 * mass * (x*x + z*z) -->
+          <iyz>0.0</iyz>         <!-- for a box: iyz = 0 -->
+          <izz>2.075</izz>       <!-- for a box: izz = 0.083 * mass * (x*x + y*y) -->
+        </inertia>
+      </inertial>
+
+      <collision name="chassis_collision">
+        <geometry>
+          <mesh>
+            	<uri>model://warebot/meshes/WareBot_Chassis.dae</uri>
+          </mesh>
+        </geometry>
+      </collision>
+
+      <visual name="chassis_visual">
+        <geometry>
+          	<mesh>
+            	<uri>model://warebot/meshes/WareBot_Chassis.dae</uri>
+          	</mesh>
+        </geometry>
+      </visual>
+
+      <collision name="caster_collision_back">
+      	<pose>-0.24 0 -0.04 0 0 0</pose>
+      	<geometry>
+      		<mesh>
+      			<uri>model://warebot/meshes/WareBot_Caster.dae</uri>
+      		</mesh>
+      	</geometry>
+
+      	<surface>
+      		<friction>
+      			<ode>
+      				<mu>0.8</mu>
+      				<mu2>0.8</mu2>
+      			</ode>
+      		</friction>
+      	</surface>
+      </collision>
+
+      <visual name="caster_visual_back">
+      	<pose>-0.24 0 -0.04 0 0 0</pose>
+      	<geometry>
+      		<mesh>
+      			<uri>model://warebot/meshes/WareBot_Caster.dae</uri>
+      		</mesh>
+				</geometry>
+			 </visual>
+
+      <collision name="caster_collision_front">
+        <pose>0.24 0 -0.04 0 0 3.1416</pose>
+        <geometry>
+      		<mesh>
+      			<uri>model://warebot/meshes/WareBot_Caster.dae</uri>
+      		</mesh>
+        </geometry>
+        <surface>
+          <friction>
+            <ode>
+              <mu>0.8</mu>
+              <mu2>0.8</mu2>
+            </ode>
+          </friction>
+        </surface>
+      </collision>
+
+      <visual name="caster_visual_front">
+      	<pose>0.24 0 -0.04 0 0 3.1416</pose>
+      	<geometry>
+      		<mesh>
+      			<uri>model://warebot/meshes/WareBot_Caster.dae</uri>
+      		</mesh>
+				</geometry>
+      </visual>
+    </link>
+
+    <link name="wheel_left">
+    	<pose>-0.009 0.27 -0.0308 0 0 0</pose>
+    	<collision name="wheel_left_collision">
+    		<geometry>
+          <mesh>
+            <uri>model://warebot/meshes/WareBot_Wheel.dae</uri>
+         	</mesh>
+        </geometry>
+        <surface>
+      		<friction>
+      			<ode>
+      				<mu>0.9</mu>
+      				<mu2>0.9</mu2>
+      			</ode>
+      		</friction>
+      	</surface>
+      </collision>
+      <visual name="wheel_left_visual">
+        <geometry>
+          	<mesh>
+            	<uri>model://warebot/meshes/WareBot_Wheel.dae</uri>
+         		</mesh>
+        </geometry>
+      </visual>
+  	</link>
+
+  	<link name="wheel_right">
+    	<pose>-0.009 -0.27 -0.0308 0 0 3.1416</pose>
+    	<collision name="wheel_right_collision">
+    		<geometry>
+          <mesh>
+            <uri>model://warebot/meshes/WareBot_Wheel.dae</uri>
+         	</mesh>
+        </geometry>
+        <surface>
+      		<friction>
+      			<ode>
+      				<mu>0.9</mu>
+      				<mu2>0.9</mu2>
+      			</ode>
+      		</friction>
+      	</surface>
+      </collision>
+      <visual name="wheel_right_visual">
+        <geometry>
+          <mesh>
+            <uri>model://warebot/meshes/WareBot_Wheel.dae</uri>
+         	</mesh>
+        </geometry>
+      </visual>
+  	</link>
+
+  	<joint type="revolute" name="wheel_left_hinge">
+  		<pose>0 0 0 0 0 0</pose>
+  		<child>wheel_left</child>
+  		<parent>chassis</parent>
+  		<axis>
+  			<xyz>0 1 0</xyz>
+  		</axis>
+  	</joint>
+
+  	<joint type="revolute" name="wheel_right_hinge">
+  		<pose>0 0 0 0 0 3.1416</pose>
+  		<child>wheel_right</child>
+  		<parent>chassis</parent>
+  		<axis>
+  			<xyz>0 1 0</xyz>
+  		</axis>
+  	</joint>
+
+  	<plugin name="differential_drive_controller" filename="libgazebo_ros_diff_drive.so">
+      <legacyMode>false</legacyMode>
+      <alwaysOn>true</alwaysOn>
+      <updateRate>20</updateRate>
+      <leftJoint>wheel_left_hinge</leftJoint>
+      <rightJoint>wheel_right_hinge</rightJoint>
+      <wheelSeparation>0.4</wheelSeparation>
+      <wheelDiameter>0.1</wheelDiameter>
+      <torque>20</torque>
+      <commandTopic>cmd_vel</commandTopic>
+      <odometryTopic>odom</odometryTopic>
+      <odometryFrame>odom</odometryFrame>
+      <robotBaseFrame>base_footprint</robotBaseFrame>
+      <rosDebugLevel>na</rosDebugLevel>
+      <publishWheelTF>false</publishWheelTF>
+      <publishOdomTF>true</publishOdomTF>
+      <publishWheelJointState>false</publishWheelJointState>
+      <wheelAcceleration>0</wheelAcceleration>
+      <wheelTorque>20</wheelTorque>
+      <odometrySource>world</odometrySource>
+      <publishTf>1</publishTf>
+    </plugin>
+  </model>
+</sdf>
