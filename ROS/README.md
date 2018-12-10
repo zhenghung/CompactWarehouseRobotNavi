@@ -11,7 +11,7 @@ Terminal:
     roslaunch warebot_gazebo main.launch
 
 
-New terminal:
+Control Method #1: cmd_vel:
 
     rostopic pub /cmd_vel geometry_msgs/Twist "linear:
       x: 0.0
@@ -23,6 +23,11 @@ New terminal:
       z: 0.0"
 
 Change values to test differential drive.
+
+Control Method #2: TurtleBot3_teleop
+(Requires TurtleBot3 packages)
+
+    roslaunch warebot_gazebo keyboard_teleop.launch
 
 TODO:
 
