@@ -54,6 +54,29 @@ void loop() {
   }
 }
 
+#define HALL_THRESHOLD 100
+float checkSpeed(int hallPin){
+	boolean wasLowLevel = true;
+	int edgeCount = 0
+	long time = millis()
+	while (true){
+		val = analogRead(hallPin);
+		if (val >= HALL_THRESHOLD) {
+			if (wasLowLevel == true) {
+				long pulse_dur = millis()-time;
+				edgeCount++;
+				Serial.println(edgeCount);
+				wasLowLevel = false;
+			}
+		}
+		else {
+			time = millis();
+			wasLowLevel = true;
+		}
+	}
+	return rpm
+}
+
 void Forward() {
   LeftWheelRelayState = 0;
   RightWheelRelayState = 0;
