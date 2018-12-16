@@ -1,4 +1,6 @@
 // constants that won't change used to set pin numbers
+#define HALL_THRESHOLD 100
+
 #define LeftWheelRelay 2
 #define RightWheelRelay 4
 #define MotorSpeed 3
@@ -44,7 +46,7 @@ void loop() {
       dist = Serial.parseInt();
       Serial.print("Received: ");
       Serial.println(dist, DEC);
-      RobotState = 1;
+		RobotState = 1;
       if (dist < 0){
         Backward();
       }else{
@@ -58,7 +60,7 @@ void loop() {
   }
 }
 
-#define HALL_THRESHOLD 100
+// checkFreq called to return current freq of rotation (delays one pulse)
 float checkFreq(int hallPin){
   bool wasLowLevel=false;
   bool secEdge = false;

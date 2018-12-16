@@ -1,24 +1,47 @@
 #define HALL_THRESHOLD 500
-int pwm_pin = 6;
-int hall_pin = A0;
+#define PWM_LEFT 5
+#define PWM_RIGHT 6
+#define HALL_PIN_LEFT A0
+#define HALL_PIN_RIGHT A1
+#define CTRL_SHIFT_RATE 5
+
+int duty_left = 127;
+int duty_right = 127;
+
+
 const float cir = 518.36;
 
 float checkFreq(int hallPin);
+void speedControl(int pin_left, int pin_right);
 
 void setup() {
-  // put your setup code here, to run once:
-  pinMode(pwm_pin, OUTPUT);
-  pinMode(hall_pin, INPUT);
+  pinMode(PWM_LEFT, OUTPUT);
+  pinMode(PWM_RIGHT, OUTPUT);
+  pinMode(HALL_PIN_LEFT, INPUT);
+  pinMode(HALL_PIN_RIGHT, INPUT);
   Serial.begin(9600);
-  analogWrite(pwm_pin, 200);
+  analogWrite(PWM_LEFT, duty_left);
+  analogWrite(PWM_RIGHT, duty_right);
 }
 
-void mainloop(){
-  
-  Serial.println(checkFreq(hall_pin));
+// speedControl called in a loop until destination reached
+void speedControl(int pin_left, int pin_right){
+  float left_freq = checkFreq(pin_left);
+  float right_freq = checkFreq(pin_right);
+  if (left_freq > right_freq){
+    duty_left -= CTRL_SHIFT_RATE;
+    duty_right += CTRL_SHIFT_RATE;
+    analogWrite(pin_left, duty_left);
+    analogWrite(pwm_right, duty_right);
+  }else if(right_freq > left_freq){
+    duty_left += CTRL_SHIFT_RATE;
+    duty_right -= CTRL_SHIFT_RATE;
+    analogWrite(pin_left, duty_left);
+    analogWrite(pwm_right, duty_right);
+  }
 }
 
-
+// checkFreq called to return current freq of rotation (delays one pulse)
 float checkFreq(int hallPin){
   bool wasLowLevel=false;
   bool secEdge = false;
