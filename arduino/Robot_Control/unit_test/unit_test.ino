@@ -3,6 +3,8 @@ int pwm_pin = 6;
 int hall_pin = A0;
 const float cir = 518.36;
 
+float checkFreq(int hallPin);
+
 void setup() {
   // put your setup code here, to run once:
   pinMode(pwm_pin, OUTPUT);
@@ -11,12 +13,17 @@ void setup() {
   analogWrite(pwm_pin, 200);
 }
 
+void mainloop(){
+  
+  Serial.println(checkFreq(hall_pin));
+}
+
+
 float checkFreq(int hallPin){
   bool wasLowLevel=false;
   bool secEdge = false;
   unsigned long first_edge_time = 0;
   unsigned long sec_edge_time = 0;
-  double rpm = 0;
   int hall_val;
 
   while (true){
@@ -41,6 +48,5 @@ float checkFreq(int hallPin){
 
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  Serial.println(checkFreq(hall_pin));
+  mainloop();
 }
