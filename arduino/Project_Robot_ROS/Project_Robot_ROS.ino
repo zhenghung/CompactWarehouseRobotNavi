@@ -1,3 +1,7 @@
+// ROS Package and std_msg format
+#include <ros.h>
+#include <std_msgs/Int32.h>
+
 // constants that won't change used to set pin numbers
 #define LeftWheelRelay 2
 #define RightWheelRelay 4
@@ -5,6 +9,8 @@
 #define LeftMotorHall A0
 #define RightMotorHall A1
 #define outputPin 11
+
+ros::NodeHandle  nh;    // ROS Handle
 
 // variables that will change
 int LeftWheelRelayState = 0;  // 0 = relay is state 0, wheels rotate in forward direction
@@ -21,13 +27,31 @@ int dist; // distance to travel
 float pulse_count;  // converting distance to travel into number of pulses where 518.36mm is equivalent to 15 pulses
 int state = 0; 
 
-void Forward();
-void Backward();
-void StopWhenReach();
+void move( const std_msgs::Int32& msg){
+  dist = msg.data;
+  Serial.print("Received: ");
+  Serial.println(dist, DEC);
+  RobotState = 1;
+  if (dist < 0){
+    Backward();
+  }else{
+    Forward();
+  }
+  val = analogRead(LeftMotorHall);
+  Serial.println(val);
+  StopWhenReach();
+}
+
+void rotate( const std_msgs::Int32& msg){
+  int degrees = msg.data
+}
+
+ros::Subscriber<std_msgs::Int32> cmd_vel("cmd_vel", &move );
+ros::Subscriber<std_msgs::Int32> twist("twist", &rotate );
 
 void setup() {
   // put your setup code here, to run once:
-  Serial.begin(9600);
+  // Serial.begin(9600);
   
   pinMode (LeftMotorHall, INPUT);
   pinMode (RightMotorHall, INPUT);
@@ -35,57 +59,17 @@ void setup() {
   pinMode (LeftWheelRelay, OUTPUT);
   pinMode (MotorSpeed, OUTPUT);
   pinMode (RightWheelRelay, OUTPUT);
+
+  nh.initNode();
+  nh.subscribe(cmd_vel); // Forward or Reverse
+  nh.subscribe(twist);  // Rotate CW or CCW
+
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-  if (RobotState == 0) {
-    if (Serial.available() > 0) {
-      dist = Serial.parseInt();
-      Serial.print("Received: ");
-      Serial.println(dist, DEC);
-      RobotState = 1;
-      if (dist < 0){
-        Backward();
-      }else{
-        Forward();
-      }
-      val = analogRead(LeftMotorHall);
-      Serial.println(val);
-      StopWhenReach();
-    }
-
-  }
+  nh.spinOnce();
 }
-
-#define HALL_THRESHOLD 100
-float checkFreq(int hallPin){
-  bool wasLowLevel=false;
-  bool secEdge = false;
-  unsigned long first_edge_time = 0;
-  unsigned long sec_edge_time = 0;
-  int hall_val;
-
-  while (true){
-    hall_val = analogRead(hallPin);
-    if (hall_val >= HALL_THRESHOLD) {
-      if (wasLowLevel == true) {
-        if (secEdge == false){
-          first_edge_time = micros();
-          secEdge = true;
-        }else{
-          sec_edge_time = micros();
-          unsigned long duration = sec_edge_time - first_edge_time;
-          return 1000000/duration;
-        }
-      }
-      wasLowLevel = false;
-    }else {
-      wasLowLevel = true;
-    }
-  }
-}
-
 
 void Forward() {
   LeftWheelRelayState = 0;
