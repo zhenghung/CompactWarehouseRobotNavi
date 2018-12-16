@@ -21,6 +21,10 @@ int dist; // distance to travel
 float pulse_count;  // converting distance to travel into number of pulses where 518.36mm is equivalent to 15 pulses
 int state = 0; 
 
+void Forward();
+void Backward();
+void StopWhenReach();
+
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
@@ -56,25 +60,56 @@ void loop() {
 
 #define HALL_THRESHOLD 100
 float checkSpeed(int hallPin){
-	boolean wasLowLevel = true;
-	int edgeCount = 0
-	long time = millis()
+	bool wasLowLevel;
+	bool secEdge = false;
+	long pulse_start = 0;
+	long pulse_end = 0;
+	float rpm = 0;
+	int hall_val = analogRead(hallPin);
+	if (hall_val >= HALL_THRESHOLD) {
+		wasLowLevel = false;
+	}	else {
+		wasLowLevel = true;
+	}
+
 	while (true){
-		val = analogRead(hallPin);
-		if (val >= HALL_THRESHOLD) {
+		hall_val = analogRead(hallPin);
+		if (hall_val >= HALL_THRESHOLD) {
 			if (wasLowLevel == true) {
-				long pulse_dur = millis()-time;
-				edgeCount++;
-				Serial.println(edgeCount);
-				wasLowLevel = false;
+				// starts low, first edge to high
+				if (secEdge == false){
+					pulse_start = millis();
+					secEdge = true;
+					Serial.println(pulse_start);
+					wasLowLevel = false;
+				}
+				// starts high, first edge to low, sec edge high
+				else{
+					pulse_end = millis();
+					long duration = pulse_end - pulse_start;
+					rpm = (cir/30)/duration;
+					return rpm;
+				}
+			}
+		}else {
+			if (wasLowLevel==false){
+				// starts low, first edge high, sec edge low
+				if (secEdge == true){
+					pulse_end = millis();
+					long duration = pulse_end - pulse_start;
+					rpm = (cir/30)/duration;
+					return rpm;
+				}
+				// starts high, first edge to low
+				else{
+					pulse_start = millis();
+					secEdge = true;
+					Serial.println(pulse_start);
+					wasLowLevel = true;
+				}
 			}
 		}
-		else {
-			time = millis();
-			wasLowLevel = true;
-		}
 	}
-	return rpm
 }
 
 void Forward() {
