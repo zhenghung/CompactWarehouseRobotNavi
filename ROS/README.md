@@ -4,12 +4,15 @@ Model contains a chassis, two caster wheels, differential drive.
 
 Terminal:
 
+    cd catkin_ws
+    
     catkin_make
 
     source /home/<USER_NAME>/catkin_ws/devel/setup.bash
 
     roslaunch warebot_gazebo main.launch
 
+We can now move the robot IRT.
 
 Control Method #1: cmd_vel:
 
@@ -22,7 +25,7 @@ Control Method #1: cmd_vel:
       y: 0.0
       z: 0.0"
 
-Change values to test differential drive.
+Note: Change values to test differential drive.
 
 Control Method #2: TurtleBot3_teleop
 (Requires TurtleBot3 packages)
@@ -31,5 +34,7 @@ Control Method #2: TurtleBot3_teleop
 
 TODO:
 
- - Improve physics to better model actual robot
+ - XACRO 
+ - rviz visualisation
+ -change plugins used
 
