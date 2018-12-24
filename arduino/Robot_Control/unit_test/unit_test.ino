@@ -8,9 +8,6 @@
 int duty_left = 127;
 int duty_right = 127;
 
-
-const float cir = 518.36;
-
 float checkFreq(int hallPin);
 void speedControl(int pin_left, int pin_right);
 
@@ -28,6 +25,7 @@ void setup() {
 void speedControl(int pin_left, int pin_right){
   float left_freq = checkFreq(pin_left);
   float right_freq = checkFreq(pin_right);
+
   if (left_freq > right_freq){
     duty_left -= CTRL_SHIFT_RATE;
     duty_right += CTRL_SHIFT_RATE;
@@ -69,6 +67,11 @@ float checkFreq(int hallPin){
   }
 }
 
+void Forward(){
+  while(dist_travelled < destination){
+    speedControl(HALL_PIN_LEFT, HALL_PIN_RIGHT);
+  }
+}
 
 void loop() {
   mainloop();
