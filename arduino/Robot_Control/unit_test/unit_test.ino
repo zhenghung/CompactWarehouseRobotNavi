@@ -21,8 +21,6 @@ void setup() {
   pinMode(HALL_PIN_LEFT, INPUT);
   pinMode(HALL_PIN_RIGHT, INPUT);
   Serial.begin(9600);
-  analogWrite(PWM_LEFT, duty_left);
-  analogWrite(PWM_RIGHT, duty_right);
 }
 
 // speedControl called in a loop until destination reached
@@ -38,13 +36,13 @@ void speedControl(int mode){
   if (left_freq > right_freq){
     duty_left -= CTRL_SHIFT_RATE;
     duty_right += CTRL_SHIFT_RATE;
-    analogWrite(HALL_PIN_LEFT, duty_left);
-    analogWrite(HALL_PIN_RIGHT, duty_right);
+    analogWrite(PWM_LEFT, duty_left);
+    analogWrite(PWM_RIGHT, duty_right);
   }else if(right_freq > left_freq){
     duty_left += CTRL_SHIFT_RATE;
     duty_right -= CTRL_SHIFT_RATE;
-    analogWrite(HALL_PIN_LEFT, duty_left);
-    analogWrite(HALL_PIN_RIGHT, duty_right);
+    analogWrite(PWM_LEFT, duty_left);
+    analogWrite(PWM_RIGHT, duty_right);
   }
 }
 
@@ -92,6 +90,8 @@ void Forward(int destination){
   Serial.print("Pulse Count Required: ");
   Serial.println(pulse_count, DEC);
 
+  analogWrite(PWM_LEFT, STARTING_DUTY);
+  analogWrite(PWM_RIGHT, STARTING_DUTY);
   while(pulse_count_left < pulse_count && pulse_count_right < pulse_count){
     speedControl(0);  //Forward Mode
 
