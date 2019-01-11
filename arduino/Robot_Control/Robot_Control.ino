@@ -17,7 +17,7 @@ int RobotWidth = 0;
 int val;  // used to store hall sensor values
 int thresh = 100; // threshold value set for hall sensor values
 int count = 0;  // counter for hall sensor pulses detected
-boolean fromLow = true; 
+bool fromLow = true; 
 const float cir = 518.36; // circumference of wheel in mm
 int dist; // distance to travel
 float pulse_count;  // converting distance to travel into number of pulses where 518.36mm is equivalent to 15 pulses
