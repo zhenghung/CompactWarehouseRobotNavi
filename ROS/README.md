@@ -1,20 +1,26 @@
 # Compact Warehouse Robot files for ROS/Gazebo
+Model contains a chassis, two caster wheels, differential drive, lidar.
 
-Model contains a chassis, two caster wheels, differential drive.
+Requirements:
 
-Terminal:
+* joint_state_publisher
 
-    cd catkin_ws
+## How to use
+Copy `warebot` folder to your catkin workspace. Navigate to your catkin workspace then:
     
     catkin_make
 
     source /home/<USER_NAME>/catkin_ws/devel/setup.bash
 
-    roslaunch warebot_gazebo main.launch
+To launch in Gazebo:
 
-We can now move the robot IRT.
+    roslaunch warebot gazebo.launch
+To launch in rviz
 
-Control Method #1: cmd_vel:
+    roslaunch warebot display.launch
+
+## Differential drive movement
+We can now move the robot via cmd_vel
 
     rostopic pub /cmd_vel geometry_msgs/Twist "linear:
       x: 0.0
@@ -25,16 +31,14 @@ Control Method #1: cmd_vel:
       y: 0.0
       z: 0.0"
 
-Note: Change values to test differential drive.
+Change values to test differential drive.
 
-Control Method #2: TurtleBot3_teleop
-(Requires TurtleBot3 packages)
+## Keyboard movement via TurtleBot3_teleop
+(Requires TurtleBot3 package installed)
 
-    roslaunch warebot_gazebo keyboard_teleop.launch
+    roslaunch warebot keyboard.launch
 
 TODO:
 
  - XACRO 
- - rviz visualisation
- -change plugins used
-
+ - Implement SLAM
