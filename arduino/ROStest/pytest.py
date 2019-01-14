@@ -22,10 +22,10 @@ if __name__ == '__main__':
     rospy.init_node('python', anonymous=False)
     
     while True:
-	brightness, led, state = map(int, raw_input('[brightness led state]: ').split())
-	#brightness = int(raw_input('brightness: '))
-	#led = int(raw_input('led: '))
-	#state = int(raw_input('state: '))
-	brightnesspub.publish(brightness)
-	ledpub.publish(led)
-	statepub.publish(state)
+        brightness, led, state = map(int, raw_input('[brightness led state]: ').split())
+        #brightness = int(raw_input('brightness: '))
+        #led = int(raw_input('led: '))
+        #state = int(raw_input('state: '))
+        brightnesspub.publish(brightness)
+        ledpub.publish(led)
+        statepub.publish(state)
