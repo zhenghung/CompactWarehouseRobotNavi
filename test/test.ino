@@ -47,54 +47,75 @@ void loop() {
 //  digitalWrite(5, LOW);
 ////  Serial.println("LOW");
 //  delay(1000);
+
+  if (new_bearing >= 6.283) {
+      new_bearing = new_bearing - 6.283;
+    }
+  if (new_bearing <= -6.283)  {
+    new_bearing = new_bearing + 6.283;
+  }
 }
 
 void CountLeft() {
   LeftHallCount++;
 //  if(foward() == true)  {
-//    bearing = bearing + (90*L)/(pi*HalfWidth);
-//    x = x + HalfWidth*(1 - cos(bearing));
-//    y = y + HalfWidth*(tan(bearing) - sin(bearing)); 
+//    new_bearing = bearing + (90*L)/(180*HalfWidth);
+//    y = y + HalfWidth*(sin(new_bearing) - sin(bearing));
 //  }
 //  else  {
-//    bearing = bearing - (90*L)/(pi*HalfWidth);
-//    x = x + HalfWidth*(1 - cos(bearing));
-//    y = y - HalfWidth*(tan(bearing) - sin(bearing));
+//    new_bearing = bearing - (90*L)/(180*HalfWidth)
+//    y = y - HalfWidth*(sin(new_bearing) - sin(bearing));
 //  }
-    Serial.println(LeftHallCount);
-    new_bearing = bearing + (90*L)/(180*HalfWidth); // in radian
-    if (new_bearing >= 6.283) {
-      new_bearing = new_bearing - 6.283;
-    }
-    Serial.print("Bearing: ");
-    Serial.println(new_bearing);
-    x = x + HalfWidth*(cos(bearing) - cos(new_bearing));
-    
-    Serial.print("x coordinate: ");
-    Serial.println(x);
-    y = y + HalfWidth*(sin(new_bearing) - sin(bearing));
-    
-    Serial.print("y coordinate: ");
-    Serial.println(y);
-    bearing = new_bearing;
+//  x = x + HalfWidth*(cos(bearing) - cos(new_bearing));
+
+  Serial.print("Left Hall Count: ");
+  Serial.println(LeftHallCount);
+
+  // Change in bearing = (90*L*pi)/(pi*HalfWidth*180) = 0.115267
+  new_bearing = bearing + 0.1153; // in radian
+  
+  Serial.print("Bearing: ");
+  Serial.println(new_bearing);
+  
+  x = x + HalfWidth*(cos(bearing) - cos(new_bearing));
+  
+  Serial.print("x coordinate: ");
+  Serial.println(x);
+  
+  y = y + HalfWidth*(sin(new_bearing) - sin(bearing));
+  
+  Serial.print("y coordinate: ");
+  Serial.println(y);
+  bearing = new_bearing;
 }
 
 void CountRight() {
   RightHallCount++;
 //  if(foward() == true)  {
-//    bearing = bearing - (90*L)/(pi*HalfWidth);
-//    x = x - HalfWidth*(1 - cos(bearing));
-//    y = y + HalfWidth*(tan(bearing) - sin(bearing)); 
+//    new_bearing = bearing - (90*L)/(180*HalfWidth);
+//    y = y + HalfWidth*(sin(new_bearing) - sin(bearing));
 //  }
 //  else  {
-//    bearing = bearing + (90*L)/(pi*HalfWidth);
-//    x = x - HalfWidth*(1 - cos(bearing));
-//    y = y - HalfWidth*(tan(bearing) - sin(bearing));
+//    new_bearing = bearing + (90*L)/(180*HalfWidth);
+//    y = y - HalfWidth*(sin(new_bearing) - sin(bearing));
 //  }
-    Serial.println(RightHallCount);
-    bearing = bearing - (90*L)/(pi*HalfWidth);
-    
-    x = x - HalfWidth*(1 - cos(bearing));
-    
-    y = y + HalfWidth*(tan(bearing) - sin(bearing));
+//  x = x - HalfWidth*(cos(bearing) - cos(new_bearing));
+
+  Serial.print("Right Hall Count: ");
+  Serial.println(RightHallCount);
+  new_bearing = bearing - 0.1153; // in radian
+  
+  Serial.print("Bearing: ");
+  Serial.println(new_bearing);
+  
+  x = x - HalfWidth*(cos(bearing) - cos(new_bearing));
+  
+  Serial.print("x coordinate: ");
+  Serial.println(x);
+  
+  y = y + HalfWidth*(sin(new_bearing) - sin(bearing));
+  
+  Serial.print("y coordinate: ");
+  Serial.println(y);
+  bearing = new_bearing;
 }
