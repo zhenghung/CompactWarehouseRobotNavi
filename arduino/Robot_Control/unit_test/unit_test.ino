@@ -211,7 +211,16 @@ void Turn(int angle){
 
 void loop() {
   if (Serial.available() > 0) {
-    int destination = Serial.parseInt();
-    Forward(destination);
+    // Forward driving Control Test
+    // int destination = Serial.parseInt();
+    // Forward(destination);
+
+    // Check Frequency Code Test
+    Serial.println(checkFreq(HALL_PIN_LEFT, true));
+
+    // Freqency Diff Test
+    // Serial.print("Freq Diff: ");
+    // Serial.println(freqDiff());
   }
+
 }
