@@ -1,13 +1,13 @@
-#define HALL_THRESHOLD 500
+#define HALL_THRESHOLD 900
 #define PWM_LEFT 5
 #define PWM_RIGHT 6
 #define HALL_PIN_LEFT A0
 #define HALL_PIN_RIGHT A1
 #define CTRL_SHIFT_RATE 0.2
 #define WHEEL_CIRCUMFERENCE 100
-#define STARTING_DUTY 110
+#define STARTING_DUTY 104
 #define DUTY_MAX 150
-#define DUTY_MIN 90
+#define DUTY_MIN 102
 
 
 // Feedback Controller Globals
@@ -29,7 +29,7 @@ void setup() {
   pinMode(HALL_PIN_LEFT, INPUT);
   pinMode(HALL_PIN_RIGHT, INPUT);
   Serial.begin(9600);
-
+  analogWrite(PWM_LEFT, STARTING_DUTY);
 }
 
 // speedControl called in a loop until destination reached
@@ -157,6 +157,8 @@ float checkFreq(int hallPin, bool left_wheel){
 
   while (true){
     hall_val = analogRead(hallPin);
+    //Serial.println(hall_val);
+    delayMicroseconds(1000);
     if (hall_val >= HALL_THRESHOLD) {
       if (wasLowLevel == true) {
         wasLowLevel = false;  // Reset edge detector
@@ -175,7 +177,9 @@ float checkFreq(int hallPin, bool left_wheel){
         }else{
           sec_edge_time = micros();
           unsigned long duration = sec_edge_time - first_edge_time;
-          return 1000000/duration;
+//          return 10/00000/duration;
+          Serial.print("Frequency: ");
+          return duration;
         }
       }
     }else {
@@ -212,15 +216,16 @@ void Turn(int angle){
 void loop() {
   if (Serial.available() > 0) {
     // Forward driving Control Test
-    // int destination = Serial.parseInt();
+     int destination = Serial.parseInt();
     // Forward(destination);
-
-    // Check Frequency Code Test
-    Serial.println(checkFreq(HALL_PIN_LEFT, true));
+    analogWrite(PWM_LEFT, destination);
+  }
+  // Check Frequency Code Test
+  Serial.println(checkFreq(HALL_PIN_LEFT, true));
 
     // Freqency Diff Test
     // Serial.print("Freq Diff: ");
     // Serial.println(freqDiff());
-  }
+//  }/
 
 }

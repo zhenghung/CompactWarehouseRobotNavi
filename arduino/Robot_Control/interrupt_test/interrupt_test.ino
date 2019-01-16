@@ -1,11 +1,11 @@
 #define HALL_THRESHOLD 500
 #define PWM_LEFT 5
 #define PWM_RIGHT 6
-#define HALL_PIN_LEFT A0
-#define HALL_PIN_RIGHT A1
+#define HALL_PIN_LEFT 2
+#define HALL_PIN_RIGHT 3
 #define CTRL_SHIFT_RATE 0.2
-#define WHEEL_CIRCUMFERENCE 100
-#define STARTING_DUTY 110
+#define WHEEL_CIRCUMFERENCE 587
+#define STARTING_DUTY 102
 #define DUTY_MAX 150
 #define DUTY_MIN 90
 
@@ -35,6 +35,7 @@ void Forward(int destination);
 void setup() {
   pinMode(PWM_LEFT, OUTPUT);
   pinMode(PWM_RIGHT, OUTPUT);
+  analogWrite(PWM_LEFT, 105);
   pinMode(HALL_PIN_LEFT, INPUT);
   pinMode(HALL_PIN_RIGHT, INPUT);
   Serial.begin(9600);
@@ -50,6 +51,8 @@ void timeLeft(){
   left_sec_edge_time = micros();
   unsigned long duration = left_sec_edge_time - left_first_edge_time;
   left_freq = 1000000/duration;
+  Serial.print("Left pulse count: ");
+  Serial.println(pulse_count_left);
 }
 
 void timeRight(){
