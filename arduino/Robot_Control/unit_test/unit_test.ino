@@ -1,4 +1,4 @@
-#define HALL_THRESHOLD 900
+#define HALL_THRESHOLD 100
 #define PWM_LEFT 5
 #define PWM_RIGHT 6
 #define HALL_PIN_LEFT A0
@@ -90,8 +90,10 @@ float freqDiff(){
   while (!(left_freq_done && right_freq_done)){
     // Left wheel polling
     left_hall_val = analogRead(HALL_PIN_LEFT);
+    //Serial.print("Left hall val: ");
+    //Serial.println(left_hall_val);
     if (!left_freq_done){
-      if (left_hall_val >= HALL_THRESHOLD) {
+      if (left_hall_val >= 100) {
         if (left_wasLowLevel == true) {
           left_wasLowLevel = false;  // Reset edge detector
 
@@ -116,8 +118,10 @@ float freqDiff(){
 
     // Right Wheel Polling
     right_hall_val = analogRead(HALL_PIN_RIGHT);
+    //Serial.print("Right hall val: ");
+    //Serial.println(right_hall_val);
     if (!right_freq_done){
-      if (right_hall_val >= HALL_THRESHOLD) {
+      if (right_hall_val >= 30) {
         if (right_wasLowLevel == true) {
           right_wasLowLevel = false;  // Reset edge detector
 
@@ -144,6 +148,7 @@ float freqDiff(){
   Serial.println(left_freq);
   Serial.print("Right Freq: ");
   Serial.println(right_freq);
+  Serial.print("Diff: ");
   return (left_freq - right_freq);
 }
 
@@ -214,14 +219,13 @@ void Turn(int angle){
 
 
 void loop() {
-  if (Serial.available() > 0) {
+  //if (Serial.available() > 0) {
     // Forward driving Control Test
-     int destination = Serial.parseInt();
+     //int destination = Serial.parseInt();
     // Forward(destination);
-    analogWrite(PWM_LEFT, destination);
-  }
+  //}
   // Check Frequency Code Test
-  Serial.println(checkFreq(HALL_PIN_LEFT, true));
+  Serial.println(freqDiff());
 
     // Freqency Diff Test
     // Serial.print("Freq Diff: ");
