@@ -1,26 +1,40 @@
 # Compact Warehouse Robot files for ROS/Gazebo
 Model contains a chassis, two caster wheels, differential drive, lidar.
 
-Requirements:
+Required packages:
 
 * joint_state_publisher
+* laser_filters
+* TurtleBot3 (for keyboard teleop)
 
-## How to use
+## Normal usage (basic spawn)
 Copy `warebot` folder to your catkin workspace. Navigate to your catkin workspace then:
-    
+
     catkin_make
 
     source /home/<USER_NAME>/catkin_ws/devel/setup.bash
 
-To launch in Gazebo:
+To spawn robot in an empty world in Gazebo:
 
-    roslaunch warebot gazebo.launch
-To launch in rviz
+    roslaunch warebot_gazebo empty.launch
 
-    roslaunch warebot display.launch
+Optional: Several other worlds are also included. Modify .launch parameter accordingly.
+
+* basic_maze
+* playground
+
+To view robot in rviz:
+
+    roslaunch warebot_description rviz.launch
+
+  Optional: Several other rviz setups are also icluded.
+
+* rviz_amcl
+* rviz_mapping
 
 ## Differential drive movement
-We can now move the robot via cmd_vel
+We can now move the robot via cmd_vel.
+Open a new terminal
 
     rostopic pub /cmd_vel geometry_msgs/Twist "linear:
       x: 0.0
@@ -36,9 +50,41 @@ Change values to test differential drive.
 ## Keyboard movement via TurtleBot3_teleop
 (Requires TurtleBot3 package installed)
 
-    roslaunch warebot keyboard.launch
+    roslaunch warebot_navigation keyboard.launch
+
+Use WSADX keys to move robot.
+
+## Filtering the LIDAR
+Due to the placement of the LIDAR, LaserScan registers hits on the robot itself, which complicates mapping. We filter this out using a `laser_filters` node.
+
+    roslaunch warebot_description filter.launch
+
+## Creating a map
+Mapping is done via gmapping. We create a map so that the robot can use it for navigation.
+
+Launch gazebo and rviz files.
+Launch `filter.launch` file.
+
+Launch `mapping.launch` file.
+
+    roslaunch warebot_navigation mapping.launch
+
+Launch teleop of choice to move robot to generate a map.
+Save map in `warebot_navigation/maps` to save a .pgm and .yaml file.
+
+    rosrun map_server map_saver -h <DIRECTORY>
+
+## Navigation (WIP)
+Launch gazebo and rviz files.
+Launch `filter.launch` file.
+
+Launch `navigation.launch` file.
+
+    roslaunch warebot_navigation navigation.launch
+
+Use Rviz to set waypoints for navigation.
 
 TODO:
 
- - XACRO 
- - Implement SLAM
+ - XACRO implementation.
+ - Solve drift issue with map and odom.
