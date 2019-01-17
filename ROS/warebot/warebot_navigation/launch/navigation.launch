@@ -12,7 +12,7 @@
 
   <!-- Localization -->
   <node pkg="amcl" type="amcl" name="amcl" output="screen">
-    <remap from="scan" to="warebot/laser/scan"/>
+    <remap from="scan" to="scan_filtered"/>
     <param name="odom_frame_id" value="odom"/>
     <param name="odom_model_type" value="diff-corrected"/>
     <param name="base_frame_id" value="chassis"/>
@@ -33,7 +33,7 @@
     
     <remap from="cmd_vel" to="cmd_vel"/>
     <remap from="odom" to="odom"/>
-    <remap from="scan" to="warebot/laser/scan"/>
+    <remap from="scan" to="scan_filtered"/>
     <param name="move_base/DWAPlannerROS/yaw_goal_tolerance" value="1.0"/>
     <param name="move_base/DWAPlannerROS/xy_goal_tolerance" value="1.0"/>
     <param name="move_base/DWAPlannerROS/max_rot_vel" value="1.0"/>
