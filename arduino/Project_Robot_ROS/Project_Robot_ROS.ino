@@ -42,6 +42,8 @@ unsigned long rightHallCount = 0;
 volatile float x = 0;
 volatile float y = 0;
 volatile float theta = 0;
+bool leftReverse = false;
+bool rightReverse = false;
 
 // Functions
 void moveForward();
@@ -64,10 +66,12 @@ void moveForward(){
 void moveTurn(float angle){
   if (angle>0){
     //Turn Left
+    leftReverse = true;
     digitalWrite(LEFT_REVERSE, HIGH);
     analogWrite(PWM_MOVE, DUTY_BEGIN);
   }else if(angle<0){
     // Turn Right
+    rightReverse = true;
     digitalWrite(RIGHT_REVERSE, HIGH);
     analogWrite(PWM_MOVE, DUTY_BEGIN);
   }
@@ -76,6 +80,8 @@ void moveTurn(float angle){
 void moveStop(){
   analogWrite(PWM_MOVE, 0);
   delay(50);
+  leftReverse = false;
+  rightReverse = false;
   digitalWrite(LEFT_REVERSE, LOW);
   digitalWrite(RIGHT_REVERSE, LOW);
 }
@@ -137,7 +143,7 @@ void loop() {
   pollHallPins();
   
   // Publish Odometry
-  publishOdom();
+  // publishOdom();
 }
 
 
@@ -180,11 +186,12 @@ void updateOdom(int turn) {
     
     if (leftReverse){
       theta = theta - THETA_DELTA;
-      y = y - HalfWidth*(sin(theta) - sin(prev_theta));
+      y = y - ROBOT_HALF_WIDTH*(sin(theta) - sin(prev_theta));
     }else{
       theta = theta + THETA_DELTA;
-      y = y - HalfWidth*(sin(theta) - sin(prev_theta));
-    x = x + HalfWidth*(cos(prev_theta) - cos(theta));
+      y = y + ROBOT_HALF_WIDTH*(sin(theta) - sin(prev_theta));
+    }
+    x = x + ROBOT_HALF_WIDTH*(cos(prev_theta) - cos(theta));
     
   }else{
     rightHallCount++;
