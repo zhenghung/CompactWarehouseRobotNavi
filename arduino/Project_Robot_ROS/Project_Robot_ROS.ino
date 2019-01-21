@@ -176,29 +176,30 @@ void pollHallPins(){
 void updateOdom(int turn) {
   if (turn>0){
     leftHallCount++;
+    float prev_theta = theta;
+    
+    if (leftReverse){
+      theta = theta - THETA_DELTA;
+      y = y - HalfWidth*(sin(theta) - sin(prev_theta));
+    }else{
+      theta = theta + THETA_DELTA;
+      y = y - HalfWidth*(sin(theta) - sin(prev_theta));
+    x = x + HalfWidth*(cos(prev_theta) - cos(theta));
+    
   }else{
     rightHallCount++;
+    float prev_theta = theta;
+    
+    if (rightReverse){
+      theta = theta + THETA_DELTA;
+      y = y - ROBOT_HALF_WIDTH*(sin(theta) - sin(prev_theta));
+    }else{
+      theta = theta - THETA_DELTA;
+      y = y + ROBOT_HALF_WIDTH*(sin(theta) - sin(prev_theta));
+    }
+    x = x - ROBOT_HALF_WIDTH*(cos(prev_theta) - cos(theta));
   }
 
-  // Serial.print("Left Hall Count: ");
-  // Serial.println(LeftHallCount);
-  float prev_theta = theta;
-  
-  theta = theta + turn*THETA_DELTA; // in radian
-  
-  // Serial.print("Bearing: ");
-  // Serial.println(new_bearing);
-  
-  x = x + ROBOT_HALF_WIDTH*(cos(prev_theta) - cos(theta));
-  
-  // Serial.print("x coordinate: ");
-  // Serial.println(x);
-  
-  y = y + ROBOT_HALF_WIDTH*(sin(theta) - sin(prev_theta));
-  
-  // Serial.print("y coordinate: ");
-  // Serial.println(y);
-  // bearing = new_bearing;
 }
 
 
