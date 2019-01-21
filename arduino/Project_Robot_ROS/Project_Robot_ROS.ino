@@ -14,10 +14,17 @@
 // PHYSICS CONSTANTS
 #define WHEEL_CIRCUMFERENCE 518.36
 #define ROBOT_HALF_WIDTH 280
+// Change in bearing = (90*L*pi)/(pi*HalfWidth*180) = 0.115267
+#define THETA_DELTA 0.115267
 
 // ROS Package and std_msg format
 #include <ros.h>
+#include <ros/time.h>
+#include <nav_msgs/Odometry.h>
 #include "geometry_msgs/Twist.h"
+#include <tf/tf.h>
+#include <tf/transform_broadcaster.h>
+
 
 //=======================================================
 // Globals
@@ -45,8 +52,8 @@ void pollHallPins();
 void updateOdom(int turn);
 
 // ROS Subscriber and Publisher
-ros::Subscriber<geometry_msgs::Twist> sub_cmd_vel("cmd_vel" , velCallback);
-ros::Publisher pub_odom("odom", &pose);
+//ros::Subscriber<geometry_msgs::Twist> sub_cmd_vel("cmd_vel" , velCallback);
+//ros::Publisher pub_odom("odom", 50);
 
 //=======================================================
 // ROBOT MOVEMENT
@@ -98,21 +105,39 @@ void setup() {
   moveStop();
 
   // ROS
-  robot.initNode();
-  robot.subscribe(sub_cmd_vel);
-  robot.advertise(pub_odom);
+  //robot.initNode();
+  //robot.subscribe(sub_cmd_vel);
+  //robot.advertise(pub_odom);
 
 }
 
 void loop() {
   // SpinOnce Check for instructions
-  robot.spinOnce();
+  //robot.spinOnce();
+  if (Serial.available()>0){
+    char cmd = Serial.read();
+    switch (cmd) {
+      case 'w':
+        moveForward();
+        break;
+      case 'a':
+        moveTurn(1);
+        break;
+      case 'd':
+        moveTurn(-1);
+        break;
+      default:
+        moveStop();
+        break;
+    }
+
+  }
 
   // Check Hall pins of both wheels for Rising Edge
   pollHallPins();
   
   // Publish Odometry
-  robot.publish(&pose);
+  publishOdom();
 }
 
 
@@ -120,18 +145,17 @@ void pollHallPins(){
   // Left wheel polling
   left_hall_val = analogRead(LEFT_HALL_IN);
   //Serial.println(left_hall_val);
-  if (!left_freq_done){
-    if (left_hall_val >= LEFT_HALL_THRESH) {
-      if (left_wasLowLevel == true) {
-        left_wasLowLevel = false;  // Reset edge detector
+  if (left_hall_val >= LEFT_HALL_THRESH) {
+    if (left_wasLowLevel == true) {
+      left_wasLowLevel = false;  // Reset edge detector
 
-        // Odometry Update
-        updateOdom(1); 
-      }
-    }else {
-      left_wasLowLevel = true;
+      // Odometry Update
+      updateOdom(1); 
     }
+  }else {
+    left_wasLowLevel = true;
   }
+  
 
   // Right Wheel Polling
   right_hall_val = analogRead(RIGHT_HALL_IN);
@@ -159,22 +183,45 @@ void updateOdom(int turn) {
   // Serial.print("Left Hall Count: ");
   // Serial.println(LeftHallCount);
   float prev_theta = theta;
-  // Change in bearing = (90*L*pi)/(pi*HalfWidth*180) = 0.115267
-  theta = theta + turn*0.1153; // in radian
+  
+  theta = theta + turn*THETA_DELTA; // in radian
   
   // Serial.print("Bearing: ");
   // Serial.println(new_bearing);
   
-  x = x + HalfWidth*(cos(prev_theta) - cos(theta));
+  x = x + ROBOT_HALF_WIDTH*(cos(prev_theta) - cos(theta));
   
   // Serial.print("x coordinate: ");
   // Serial.println(x);
   
-  y = y + HalfWidth*(sin(theta) - sin(prev_theta));
+  y = y + ROBOT_HALF_WIDTH*(sin(theta) - sin(prev_theta));
   
   // Serial.print("y coordinate: ");
   // Serial.println(y);
-  bearing = new_bearing;
+  // bearing = new_bearing;
 }
 
 
+void publishOdom(){
+  /*
+  geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(theta);
+  nav_msgs::Odometry odom;
+  odom.header.stamp = ros::Time::now();
+  odom.header.frame_id = "odom";
+
+  odom.pose.pose.position.x = x;
+  odom.pose.pose.position.y = y;
+  odom.pose.pose.position.z = 0.0;
+  odom_quat = tf::createQuaternionMsgFromYaw(theta);
+  odom.pose.pose.orientation = odom_quat;
+
+  pub_odom.publish(&odom);
+  */
+  Serial.print("x: ");
+  Serial.print(x);
+  Serial.print(" , y: ");
+  Serial.print(y);
+  Serial.print(" , theta: ");
+  Serial.println(theta);
+  
+}
