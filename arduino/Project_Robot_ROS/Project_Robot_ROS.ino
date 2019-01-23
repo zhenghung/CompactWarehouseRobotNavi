@@ -1,14 +1,14 @@
 // DEFINE CONSTANTS
 // PINS
 #define PWM_MOVE 5
-#define LEFT_HALL_IN A0
-#define RIGHT_HALL_IN A1
+#define LEFT_HALL_IN A8
+#define RIGHT_HALL_IN A9
 #define LEFT_REVERSE 8
 #define RIGHT_REVERSE 9
 
 // CONSTANTS
-#define LEFT_HALL_THRESH 100
-#define RIGHT_HALL_THRESH 100
+#define LEFT_HALL_THRESH 1023
+#define RIGHT_HALL_THRESH 1023
 #define DUTY_BEGIN 100
 
 // PHYSICS CONSTANTS
@@ -54,8 +54,12 @@ void pollHallPins();
 void updateOdom(int turn);
 
 // ROS Subscriber and Publisher
-//ros::Subscriber<geometry_msgs::Twist> sub_cmd_vel("cmd_vel" , velCallback);
-//ros::Publisher pub_odom("odom", 50);
+ros::Subscriber<geometry_msgs::Twist> sub_cmd_vel("cmd_vel" , velCallback);
+geometry_msgs::TransformStamped t;
+tf::TransformBroadcaster broadcaster;
+
+char base_link[] = "/base_link";
+char odom[] = "/odom";
 
 //=======================================================
 // ROBOT MOVEMENT
@@ -111,9 +115,10 @@ void setup() {
   moveStop();
 
   // ROS
-  //robot.initNode();
-  //robot.subscribe(sub_cmd_vel);
-  //robot.advertise(pub_odom);
+  robot.initNode();
+  robot.subscribe(sub_cmd_vel);
+  broadcaster.init(robot);
+  // robot.advertise(pub_odom);
 
 }
 
@@ -143,7 +148,7 @@ void loop() {
   pollHallPins();
   
   // Publish Odometry
-  // publishOdom();
+  publishOdom();
 }
 
 
@@ -180,56 +185,56 @@ void pollHallPins(){
 
 // Function turn param takes +1 or -1 depending on left wheel or right wheel poll
 void updateOdom(int turn) {
+  float prev_theta = theta;
+
   if (turn>0){
-    leftHallCount++;
-    float prev_theta = theta;
-    
+    leftHallCount++;    
+    // Serial.print(leftHallCount);
     if (leftReverse){
       theta = theta - THETA_DELTA;
-      y = y - ROBOT_HALF_WIDTH*(sin(theta) - sin(prev_theta));
+      y = y - ROBOT_HALF_WIDTH*(cos(theta) - cos(prev_theta));
+      x = x - ROBOT_HALF_WIDTH*(sin(prev_theta) - sin(theta));
     }else{
       theta = theta + THETA_DELTA;
-      y = y + ROBOT_HALF_WIDTH*(sin(theta) - sin(prev_theta));
+      y = y + ROBOT_HALF_WIDTH*(cos(theta) - cos(prev_theta));
+      x = x + ROBOT_HALF_WIDTH*(sin(prev_theta) - sin(theta));
     }
-    x = x + ROBOT_HALF_WIDTH*(cos(prev_theta) - cos(theta));
     
   }else{
-    rightHallCount++;
-    float prev_theta = theta;
-    
+    rightHallCount++;    
+    // Serial.print("              ");
+    // Serial.println(rightHallCount);
     if (rightReverse){
       theta = theta + THETA_DELTA;
-      y = y - ROBOT_HALF_WIDTH*(sin(theta) - sin(prev_theta));
+      y = y - ROBOT_HALF_WIDTH*(cos(theta) - cos(prev_theta));
+      x = x + ROBOT_HALF_WIDTH*(sin(prev_theta) - sin(theta));
     }else{
       theta = theta - THETA_DELTA;
-      y = y + ROBOT_HALF_WIDTH*(sin(theta) - sin(prev_theta));
+      y = y + ROBOT_HALF_WIDTH*(cos(theta) - cos(prev_theta));
+      x = x - ROBOT_HALF_WIDTH*(sin(prev_theta) - sin(theta));
     }
-    x = x - ROBOT_HALF_WIDTH*(cos(prev_theta) - cos(theta));
   }
-
 }
 
 
 void publishOdom(){
-  /*
-  geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(theta);
-  nav_msgs::Odometry odom;
-  odom.header.stamp = ros::Time::now();
-  odom.header.frame_id = "odom";
+  
+  t.header.frame_id = odom;
+  t.child_frame_id = base_link;
+  
+  t.transform.translation.x = x;
+  t.transform.translation.y = y;
+  
+  t.transform.rotation = tf::createQuaternionFromYaw(theta);
+  t.header.stamp = robot.now();
+  
+  broadcaster.sendTransform(t);
+  
 
-  odom.pose.pose.position.x = x;
-  odom.pose.pose.position.y = y;
-  odom.pose.pose.position.z = 0.0;
-  odom_quat = tf::createQuaternionMsgFromYaw(theta);
-  odom.pose.pose.orientation = odom_quat;
-
-  pub_odom.publish(&odom);
-  */
   Serial.print("x: ");
   Serial.print(x);
-  Serial.print(" , y: ");
+  Serial.print("   y: ");
   Serial.print(y);
-  Serial.print(" , theta: ");
-  Serial.println(theta);
-  
+  Serial.print("   theta: ");
+  Serial.println(theta); 
 }
