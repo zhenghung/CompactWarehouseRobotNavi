@@ -118,4 +118,38 @@ void CountRight() {
   Serial.print("y coordinate: ");
   Serial.println(y);
   bearing = new_bearing;
+
+
+//  void updateOdom(int turn) {
+//  if (turn>0){
+//    leftHallCount++;
+//    float prev_theta = theta;
+//    
+//    if (leftReverse){
+//      theta = theta - THETA_DELTA;
+//      y = y - ROBOT_HALF_WIDTH*(cos(theta) - cos(prev_theta));
+//    x = x - ROBOT_HALF_WIDTH*(sin(prev_theta) - sin(theta));
+//    }else{
+//      theta = theta + THETA_DELTA;
+//      y = y + ROBOT_HALF_WIDTH*(cos(theta) - cos(prev_theta));
+//    x = x + ROBOT_HALF_WIDTH*(sin(prev_theta) - sin(theta));
+//    }
+//    
+//  }else{
+//    rightHallCount++;
+//    float prev_theta = theta;
+//    
+//    if (rightReverse){
+//      theta = theta + THETA_DELTA;
+//      y = y - ROBOT_HALF_WIDTH*(cos(theta) - cos(prev_theta));
+//    x = x + ROBOT_HALF_WIDTH*(sin(prev_theta) - sin(theta));
+//    }else{
+//      theta = theta - THETA_DELTA;
+//      y = y + ROBOT_HALF_WIDTH*(cos(theta) - cos(prev_theta));
+//    x = x - ROBOT_HALF_WIDTH*(sin(prev_theta) - sin(theta));
+//    }
+//    
+//  }
+//
+//}
 }
