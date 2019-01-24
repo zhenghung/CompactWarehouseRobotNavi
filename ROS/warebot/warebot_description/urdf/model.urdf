@@ -24,8 +24,8 @@
       <surface>
         <friction>
           <ode>
-            <mu>0.1</mu>
-            <mu2>0.1</mu2>
+            <mu>0</mu>
+            <mu2>0</mu2>
             <slip1>1.0</slip1>
             <slip2>1.0</slip2>
           </ode>
@@ -41,8 +41,8 @@
       <surface>
         <friction>
           <ode>
-            <mu>0.1</mu>
-            <mu2>0.1</mu2>
+            <mu>0</mu>
+            <mu2>0</mu2>
             <slip1>1.0</slip1>
             <slip2>1.0</slip2>
           </ode>
@@ -138,7 +138,7 @@
 		<child link="wheel_left"/>
 		<origin rpy="0 0 0" xyz="0.009 0.27 -0.0308"/>
 		<axis xyz="0 1 0"/>
-		<limit effort="20" velocity="50"/>
+		<limit effort="90" velocity="20"/>
 	</joint>
 
 	<joint name="wheel_right_hinge" type="continuous">
@@ -146,23 +146,31 @@
 		<child link="wheel_right"/>
     	<origin rpy="0 0 0" xyz="-0.009 -0.27 -0.0308"/>
     	<axis xyz="0 1 0"/>
-    	<limit effort="20" velocity="50"/>
+    	<limit effort="90" velocity="20"/>
   </joint>
   <!-- Differential drive controller -->
   <gazebo>
     <plugin filename="libgazebo_ros_diff_drive.so" name="differential_drive_controller">
-      <legacyMode>false</legacyMode>
       <alwaysOn>true</alwaysOn>
       <updateRate>20</updateRate>
+      <legacyMode>false</legacyMode>
       <leftJoint>wheel_left_hinge</leftJoint>
       <rightJoint>wheel_right_hinge</rightJoint>
-      <wheelSeparation>0.5</wheelSeparation>
-      <wheelDiameter>0.165</wheelDiameter>
+      <wheelSeparation>0.167</wheelSeparation>
+      <wheelDiameter>0.15</wheelDiameter>
       <torque>20</torque>
       <commandTopic>cmd_vel</commandTopic>
       <odometryTopic>odom</odometryTopic>
       <odometryFrame>odom</odometryFrame>
       <robotBaseFrame>chassis</robotBaseFrame>
+      <publishWheelTF>false</publishWheelTF>
+      <publishWheelJointState>false</publishWheelJointState>
+      <rosDebugLevel>na</rosDebugLevel>
+      <wheelAcceleration>0</wheelAcceleration>
+      <wheelTorque>5</wheelTorque>
+      <odometrySource>world</odometrySource>
+      <publishTf>1</publishTf>
+      <publishOdomTF>true</publishOdomTF>
     </plugin>
   </gazebo>
   <!-- LIDAR sensor -->
