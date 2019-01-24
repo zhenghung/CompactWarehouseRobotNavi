@@ -7,7 +7,7 @@
   <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)" />
 
   <!-- Place map frame at odometry frame -->
-  <node pkg="tf" type="static_transform_publisher" name="map_odom_broadcaster" args="0 0 0 0 0 0 /map /odom 100"/>
+  <node pkg="tf" type="static_transform_publisher" name="map_odom_broadcaster" args="2 0 0 0 0 0 /map /chassis 100"/>
 
   <!-- Localization -->
   <node pkg="amcl" type="amcl" name="amcl" output="screen">
@@ -15,8 +15,8 @@
     <param name="odom_frame_id" value="odom"/>
     <param name="odom_model_type" value="diff-corrected"/>
     <param name="base_frame_id" value="chassis"/>
-    <param name="update_min_d" value="0.5"/>
-    <param name="update_min_a" value="1.0"/>
+    <param name="update_min_d" value="0.2"/>
+    <param name="update_min_a" value="0.5"/>
   </node>
   <!--include file="$(find amcl)/examples/amcl_omni.launch"/-->
 
@@ -29,7 +29,6 @@
     <rosparam file="$(find warebot_navigation)/config/global_costmap_params.yaml" command="load" />
     <rosparam file="$(find warebot_navigation)/config/base_local_planner_params.yaml" command="load" />
     <rosparam file="$(find warebot_navigation)/config/move_base_params.yaml" command="load" />
-    
     
     <remap from="cmd_vel" to="cmd_vel"/>
     <remap from="odom" to="odom"/>
