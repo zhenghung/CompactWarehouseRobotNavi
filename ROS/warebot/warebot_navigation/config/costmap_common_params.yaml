@@ -3,7 +3,7 @@ raytrace_range: 3
 #footprint: [[x0, y0], [x1, y1], ... [xn, yn]]
 #robot_radius: ir_of_robot
 robot_radius: 0.3 # distance a circular robot should be clear of the obstacle
-inflation_radius: 0.25
+inflation_radius: 0.3
 
 observation_sources: laser_scan_sensor #point_cloud_sensor
 

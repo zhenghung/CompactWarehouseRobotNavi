@@ -1,22 +1,11 @@
 scan_filter_chain:
-- name: box_right
+- name: box
   type: LaserScanBoxFilter
   params:
     box_frame: chassis
-    min_x: -0.3
-    max_x: 0.27
-    min_y: -0.27
-    max_y: 0
-    min_z: -0.5
-    max_z: 0.5
-
-- name: box_left
-  type: LaserScanBoxFilter
-  params:
-    box_frame: chassis
-    min_x: -0.3
-    max_x: 0.27
-    min_y: 0
-    max_y: 0.27
+    min_x: -0.285
+    max_x: 0.285
+    min_y: -0.285
+    max_y: 0.285
     min_z: -0.5
     max_z: 0.5
