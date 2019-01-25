@@ -21,7 +21,7 @@ volatile unsigned long LeftHallCount = 0;
 volatile unsigned long RightHallCount = 0;
 volatile float x = 0;
 volatile float y = 0;
-volatile float bearing = 0;
+volatile float bearing = 3.14;
 volatile float new_bearing = 0;
 void setup() {
   // put your setup code here, to run once:
@@ -108,7 +108,7 @@ void CountRight() {
   Serial.print("Bearing: ");
   Serial.println(new_bearing);
   
-  x = x - abs(HalfWidth*(cos(bearing) - cos(new_bearing)));
+  x = x + abs(HalfWidth*(cos(bearing) - cos(new_bearing)));
   //x = HalfWidth*(cos(bearing) - cos(new_bearing));
   Serial.print("x coordinate: ");
   Serial.println(x);
@@ -124,9 +124,15 @@ void CountRight() {
 //  if (turn>0){
 //    leftHallCount++;
 //    float prev_theta = theta;
+//      if (prev_theta < 0) {
+//        prev_theta = prev_theta + 2 * pi;
+//      }
 //    
 //    if (leftReverse) {
 //      theta = theta - THETA_DELTA;
+//      if (theta < 0) {
+//        theta = theta + 2 * pi;
+//      }
 //      if (prev_theta > 0 && prev_theta <= 1.5708) {
 //        x = x - abs(ROBOT_HALF_WIDTH*(sin(prev_theta) - sin(theta)));
 //        y = y - abs(ROBOT_HALF_WIDTH*(cos(theta) - cos(prev_theta)));        
@@ -185,7 +191,10 @@ void CountRight() {
 //        y = y - abs(ROBOT_HALF_WIDTH*(cos(theta) - cos(prev_theta))); 
 //      }
 //    } else {
-//      theta = theta + THETA_DELTA;
+//      theta = theta - THETA_DELTA;
+//      if (theta < 0) {
+//        theta = theta + 2 * pi;
+//      }
 //      if (prev_theta > 0 && prev_theta <= 1.5708) {
 //        x = x + abs(ROBOT_HALF_WIDTH*(sin(prev_theta) - sin(theta)));
 //        y = y + abs(ROBOT_HALF_WIDTH*(cos(theta) - cos(prev_theta)));        
@@ -203,4 +212,4 @@ void CountRight() {
 //        y = y + abs(ROBOT_HALF_WIDTH*(cos(theta) - cos(prev_theta))); 
 //      }
 //    }
-//}
+//  }
