@@ -1,12 +1,12 @@
 <?xml version="1.0" ?>
 <robot name="warebot">
   <!-- Chassis + caster wheels -->
-	<link name="chassis">
-		<inertial>
+  <link name="chassis">
+    <inertial>
       <mass value="60"/>
-      	<origin rpy="0 0 0" xyz="0 0 0.1"/>
-      	<!-- x=0.5 y=0.5 z=0.207-->
-      	<inertia ixx="1.215" ixy="0.0" ixz="0.0" iyy="1.215" iyz="0.0" izz="2.075"/>
+        <origin rpy="0 0 0" xyz="0 0 0.1"/>
+        <!-- x=0.5 y=0.5 z=0.207-->
+        <inertia ixx="1.215" ixy="0.0" ixz="0.0" iyy="1.215" iyz="0.0" izz="2.075"/>
     </inertial>
 
     <collision name="chassis_collision">
@@ -116,23 +116,37 @@
       </geometry>
     </visual>
   </link>
+  <!-- LIDAR -->
+  <link name="lidar_generic">
+    <inertial>
+      <mass value="0.5"/>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0"/>
+    </inertial>
+  </link>
 
   <!-- Joints -->
+  <joint name="lidar_base" type="fixed">
+    <parent link="chassis"/>
+    <child link="lidar_generic"/>
+    <origin rpy="0 0 0" xyz="0.15 0 0.09"/>
+    <axis xyz="0 0 1"/>
+  </joint>
 
-	<joint name="wheel_left_hinge" type="continuous">
-		<parent link="chassis"/>
-		<child link="wheel_left"/>
-		<origin rpy="0 0 0" xyz="0.009 0.27 -0.0308"/>
-		<axis xyz="0 1 0"/>
-		<limit effort="90" velocity="20"/>
-	</joint>
+  <joint name="wheel_left_hinge" type="continuous">
+    <parent link="chassis"/>
+    <child link="wheel_left"/>
+    <origin rpy="0 0 0" xyz="0.009 0.27 -0.0308"/>
+    <axis xyz="0 1 0"/>
+    <limit effort="90" velocity="20"/>
+  </joint>
 
-	<joint name="wheel_right_hinge" type="continuous">
-		<parent link="chassis"/>
-		<child link="wheel_right"/>
-    	<origin rpy="0 0 0" xyz="-0.009 -0.27 -0.0308"/>
-    	<axis xyz="0 1 0"/>
-    	<limit effort="90" velocity="20"/>
+  <joint name="wheel_right_hinge" type="continuous">
+    <parent link="chassis"/>
+    <child link="wheel_right"/>
+      <origin rpy="0 0 0" xyz="-0.009 -0.27 -0.0308"/>
+      <axis xyz="0 1 0"/>
+      <limit effort="90" velocity="20"/>
   </joint>
   <!-- Differential drive controller -->
   <gazebo>
@@ -158,5 +172,38 @@
       <publishTf>1</publishTf>
       <publishOdomTF>true</publishOdomTF>
     </plugin>
+  </gazebo>
+  <!-- LIDAR sensor -->
+  <gazebo reference = "lidar_generic">
+    <sensor name="lidar_sensor" type="ray">
+         <pose>0 0 0 0 0 0</pose>
+         <always_on>1</always_on>
+         <update_rate></update_rate>
+         <visualize>true</visualize>
+         <ray>
+          <scan>
+            <horizontal>
+              <samples>720</samples>
+              <resolution>1</resolution>
+              <min_angle>-3.14</min_angle>
+              <max_angle>3.14</max_angle>
+            </horizontal>
+          </scan>
+          <range>
+            <min>0.15</min>
+            <max>6</max>
+            <resolution>0.01</resolution>
+          </range>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.01</stddev>
+          </noise>
+        </ray>
+        <plugin name="gazebo_ros_head_hokuyo_controller" filename="libgazebo_ros_laser.so">
+          <topicName>/warebot/laser/scan</topicName>
+          <frameName>lidar_generic</frameName>
+        </plugin>
+      </sensor>
   </gazebo>
 </robot>
