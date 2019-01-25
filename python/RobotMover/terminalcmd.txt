@@ -1,0 +1,34 @@
+# Terminal 1
+----------------------
+roscore
+
+
+# Terminal 2
+----------------------
+rosrun rosserial_python serial_node.py /dev/ttyACM0
+
+or
+
+rosrun rosserial_python serial_node.py /dev/ttyACM1
+
+
+# Terminal 3
+----------------------
+rostopic pub cmd_vel geometry_msgs/Twist ___ --once
+
+Tab at ___ to fill the msg
+
+
+# Terminal 4
+----------------------
+rosrun rviz rviz
+
+
+# Terminal 5 (Opt)
+----------------------
+rostopic echo /odom
+
+
+# Terminal 6 (Opt)
+----------------------
+rostopic echo /tf

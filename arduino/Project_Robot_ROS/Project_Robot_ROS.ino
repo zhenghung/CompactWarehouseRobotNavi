@@ -55,6 +55,8 @@ void updateOdom(int turn);
 
 // ROS Subscriber and Publisher
 ros::Subscriber<geometry_msgs::Twist> sub_cmd_vel("cmd_vel" , velCallback);
+nav_msgs::Odometry odomMsg;
+ros::Publisher pub_odom("odom", &odomMsg);
 geometry_msgs::TransformStamped t;
 tf::TransformBroadcaster broadcaster;
 
@@ -118,7 +120,7 @@ void setup() {
   robot.initNode();
   robot.subscribe(sub_cmd_vel);
   broadcaster.init(robot);
-  // robot.advertise(pub_odom);
+  robot.advertise(pub_odom);
 
 }
 
@@ -218,18 +220,35 @@ void updateOdom(int turn) {
 
 
 void publishOdom(){
-  
+  geometry_msgs::Quaternion odom_quat = tf::createQuaternionFromYaw(theta);
+  // Broadcast to tf
   t.header.frame_id = odom;
   t.child_frame_id = base_link;
   
   t.transform.translation.x = x;
   t.transform.translation.y = y;
   
-  t.transform.rotation = tf::createQuaternionFromYaw(theta);
+  t.transform.rotation = odom_quat;
   t.header.stamp = robot.now();
   
   broadcaster.sendTransform(t);
   
+  // Publish to odom
+  odomMsg.header.stamp = robot.now();
+  odomMsg.header.frame_id = "odom";
+
+  odomMsg.pose.pose.position.x = x;
+  odomMsg.pose.pose.position.y = y;
+  odomMsg.pose.pose.position.z = 0.0;
+  odomMsg.pose.pose.orientation = odom_quat;
+
+  odomMsg.child_frame_id = "base_link";
+  // odomMsg.twist.twist.linear.x = vx;
+  // odomMsg.twist.twist.linear.y = vy;
+  // odomMsg.twist.twist.angular.z = vth;
+  
+  pub_odom.publish(&odomMsg);
+
 
   Serial.print("x: ");
   Serial.print(x);
