@@ -77,13 +77,13 @@ void CountLeft() {
   Serial.print("Bearing: ");
   Serial.println(new_bearing);
   
-  x = x + HalfWidth*(cos(bearing) - cos(new_bearing));
-  
+  x = x + abs(HalfWidth*(cos(bearing) - cos(new_bearing)));
+  //x = HalfWidth*(cos(bearing) - cos(new_bearing));
   Serial.print("x coordinate: ");
   Serial.println(x);
   
-  y = y + HalfWidth*(sin(new_bearing) - sin(bearing));
-  
+  y = y + abs(HalfWidth*(sin(new_bearing) - sin(bearing)));
+  //y = HalfWidth*(sin(new_bearing) - sin(bearing));
   Serial.print("y coordinate: ");
   Serial.println(y);
   bearing = new_bearing;
@@ -108,48 +108,99 @@ void CountRight() {
   Serial.print("Bearing: ");
   Serial.println(new_bearing);
   
-  x = x - HalfWidth*(cos(bearing) - cos(new_bearing));
-  
+  x = x - abs(HalfWidth*(cos(bearing) - cos(new_bearing)));
+  //x = HalfWidth*(cos(bearing) - cos(new_bearing));
   Serial.print("x coordinate: ");
   Serial.println(x);
   
-  y = y + HalfWidth*(sin(new_bearing) - sin(bearing));
-  
+  y = y + abs(HalfWidth*(sin(new_bearing) - sin(bearing)));
+  //y = HalfWidth*(sin(new_bearing) - sin(bearing));
   Serial.print("y coordinate: ");
   Serial.println(y);
   bearing = new_bearing;
-
+}
 
 //  void updateOdom(int turn) {
 //  if (turn>0){
 //    leftHallCount++;
 //    float prev_theta = theta;
 //    
-//    if (leftReverse){
+//    if (leftReverse) {
 //      theta = theta - THETA_DELTA;
-//      y = y - ROBOT_HALF_WIDTH*(cos(theta) - cos(prev_theta));
-//    x = x - ROBOT_HALF_WIDTH*(sin(prev_theta) - sin(theta));
-//    }else{
+//      if (prev_theta > 0 && prev_theta <= 1.5708) {
+//        x = x - abs(ROBOT_HALF_WIDTH*(sin(prev_theta) - sin(theta)));
+//        y = y - abs(ROBOT_HALF_WIDTH*(cos(theta) - cos(prev_theta)));        
+//      }
+//      else if (prev_theta > 1.5708 && prev_theta <= 3.1416) {
+//        x = x - abs(ROBOT_HALF_WIDTH*(sin(prev_theta) - sin(theta)));
+//        y = y + abs(ROBOT_HALF_WIDTH*(cos(theta) - cos(prev_theta))); 
+//      }
+//      else if (prev_theta > 3.1416 && prev_theta <= 4.7124) {
+//        x = x + abs(ROBOT_HALF_WIDTH*(sin(prev_theta) - sin(theta)));
+//        y = y + abs(ROBOT_HALF_WIDTH*(cos(theta) - cos(prev_theta))); 
+//      }
+//      else if (prev_theta > 4.7124 && prev_theta <= 6.2832) {
+//        x = x + abs(ROBOT_HALF_WIDTH*(sin(prev_theta) - sin(theta)));
+//        y = y - abs(ROBOT_HALF_WIDTH*(cos(theta) - cos(prev_theta))); 
+//      }
+//    } else {
 //      theta = theta + THETA_DELTA;
-//      y = y + ROBOT_HALF_WIDTH*(cos(theta) - cos(prev_theta));
-//    x = x + ROBOT_HALF_WIDTH*(sin(prev_theta) - sin(theta));
-//    }
-//    
-//  }else{
+//      if (prev_theta >= 0 && prev_theta < 1.5708) {
+//        x = x + abs(ROBOT_HALF_WIDTH*(sin(prev_theta) - sin(theta)));
+//        y = y + abs(ROBOT_HALF_WIDTH*(cos(theta) - cos(prev_theta)));        
+//      }
+//      else if (prev_theta >= 1.5708 && prev_theta < 3.1416) {
+//        x = x + abs(ROBOT_HALF_WIDTH*(sin(prev_theta) - sin(theta)));
+//        y = y - abs(ROBOT_HALF_WIDTH*(cos(theta) - cos(prev_theta))); 
+//      }
+//      else if (prev_theta >= 3.1416 && prev_theta < 4.7124) {
+//        x = x - abs(ROBOT_HALF_WIDTH*(sin(prev_theta) - sin(theta)));
+//        y = y - abs(ROBOT_HALF_WIDTH*(cos(theta) - cos(prev_theta))); 
+//      }
+//      else if (prev_theta >= 4.7124 && prev_theta < 6.2832) {
+//        x = x - abs(ROBOT_HALF_WIDTH*(sin(prev_theta) - sin(theta)));
+//        y = y + abs(ROBOT_HALF_WIDTH*(cos(theta) - cos(prev_theta))); 
+//      }
+//    }  
+//  } else {
 //    rightHallCount++;
 //    float prev_theta = theta;
 //    
 //    if (rightReverse){
 //      theta = theta + THETA_DELTA;
-//      y = y - ROBOT_HALF_WIDTH*(cos(theta) - cos(prev_theta));
-//    x = x + ROBOT_HALF_WIDTH*(sin(prev_theta) - sin(theta));
-//    }else{
-//      theta = theta - THETA_DELTA;
-//      y = y + ROBOT_HALF_WIDTH*(cos(theta) - cos(prev_theta));
-//    x = x - ROBOT_HALF_WIDTH*(sin(prev_theta) - sin(theta));
+//      if (prev_theta >= 0 && prev_theta < 1.5708) {
+//        x = x - abs(ROBOT_HALF_WIDTH*(sin(prev_theta) - sin(theta)));
+//        y = y - abs(ROBOT_HALF_WIDTH*(cos(theta) - cos(prev_theta)));        
+//      }
+//      else if (prev_theta >= 1.5708 && prev_theta < 3.1416) {
+//        x = x - abs(ROBOT_HALF_WIDTH*(sin(prev_theta) - sin(theta)));
+//        y = y + abs(ROBOT_HALF_WIDTH*(cos(theta) - cos(prev_theta))); 
+//      }
+//      else if (prev_theta >= 3.1416 && prev_theta < 4.7124) {
+//        x = x + abs(ROBOT_HALF_WIDTH*(sin(prev_theta) - sin(theta)));
+//        y = y + abs(ROBOT_HALF_WIDTH*(cos(theta) - cos(prev_theta))); 
+//      }
+//      else if (prev_theta >= 4.7124 && prev_theta < 6.2832) {
+//        x = x + abs(ROBOT_HALF_WIDTH*(sin(prev_theta) - sin(theta)));
+//        y = y - abs(ROBOT_HALF_WIDTH*(cos(theta) - cos(prev_theta))); 
+//      }
+//    } else {
+//      theta = theta + THETA_DELTA;
+//      if (prev_theta > 0 && prev_theta <= 1.5708) {
+//        x = x + abs(ROBOT_HALF_WIDTH*(sin(prev_theta) - sin(theta)));
+//        y = y + abs(ROBOT_HALF_WIDTH*(cos(theta) - cos(prev_theta)));        
+//      }
+//      else if (prev_theta > 1.5708 && prev_theta <= 3.1416) {
+//        x = x + abs(ROBOT_HALF_WIDTH*(sin(prev_theta) - sin(theta)));
+//        y = y - abs(ROBOT_HALF_WIDTH*(cos(theta) - cos(prev_theta))); 
+//      }
+//      else if (prev_theta > 3.1416 && prev_theta <= 4.7124) {
+//        x = x - abs(ROBOT_HALF_WIDTH*(sin(prev_theta) - sin(theta)));
+//        y = y - abs(ROBOT_HALF_WIDTH*(cos(theta) - cos(prev_theta))); 
+//      }
+//      else if (prev_theta > 4.7124 && prev_theta <= 6.2832) {
+//        x = x - abs(ROBOT_HALF_WIDTH*(sin(prev_theta) - sin(theta)));
+//        y = y + abs(ROBOT_HALF_WIDTH*(cos(theta) - cos(prev_theta))); 
+//      }
 //    }
-//    
-//  }
-//
 //}
-}
