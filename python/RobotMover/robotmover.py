@@ -8,7 +8,7 @@ class RobotMover:
         rospy.init_node('GoForward', anonymous=False)
 
     def move_forward(self, duration):
-        cmd_vel = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
+        cmd_vel = rospy.Publisher("cmd_vel", Twist, queue_size=10)
         move_cmd = Twist()
         move_cmd.linear.x = 1.0 
         move_cmd.angular.z = 0
@@ -23,7 +23,7 @@ class RobotMover:
         cmd_vel.publish(move_cmd)
 
     def rotate_left(self, duration):
-        cmd_vel = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
+        cmd_vel = rospy.Publisher("cmd_vel", Twist, queue_size=10)
         move_cmd = Twist()
         move_cmd.linear.x = 0.0
         move_cmd.angular.z = 1.0
@@ -38,7 +38,7 @@ class RobotMover:
         cmd_vel.publish(move_cmd)
 
     def rotate_right(self, duration):
-        cmd_vel = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
+        cmd_vel = rospy.Publisher("cmd_vel", Twist, queue_size=10)
         move_cmd = Twist()
         move_cmd.linear.x = 0.0
         move_cmd.angular.z = -1.0

@@ -9,7 +9,7 @@
 // CONSTANTS
 #define LEFT_HALL_THRESH 1023
 #define RIGHT_HALL_THRESH 1023
-#define DUTY_BEGIN 100
+#define DUTY_BEGIN 101
 
 // PHYSICS CONSTANTS
 #define WHEEL_CIRCUMFERENCE 518.36
@@ -33,7 +33,7 @@ ros::NodeHandle robot;
 // Rising Edge
 bool left_wasLowLevel = false;
 int left_hall_val;
-bool right_wasLowLevel=false;
+bool right_wasLowLevel = false;
 int right_hall_val;
 
 // Odometry
@@ -52,6 +52,7 @@ void moveStop();
 void velCallback( const geometry_msgs::Twist& vel);
 void pollHallPins();
 void updateOdom(int turn);
+void publishOdom();
 
 // ROS Subscriber and Publisher
 ros::Subscriber<geometry_msgs::Twist> sub_cmd_vel("cmd_vel" , velCallback);
@@ -65,17 +66,17 @@ char odom[] = "/odom";
 
 //=======================================================
 // ROBOT MOVEMENT
-void moveForward(){
+void moveForward() {
   analogWrite(PWM_MOVE, DUTY_BEGIN);
 }
 
-void moveTurn(float angle){
-  if (angle>0){
+void moveTurn(float angle) {
+  if (angle > 0) {
     //Turn Left
     leftReverse = true;
     digitalWrite(LEFT_REVERSE, HIGH);
     analogWrite(PWM_MOVE, DUTY_BEGIN);
-  }else if(angle<0){
+  } else if (angle < 0) {
     // Turn Right
     rightReverse = true;
     digitalWrite(RIGHT_REVERSE, HIGH);
@@ -83,7 +84,7 @@ void moveTurn(float angle){
   }
 }
 
-void moveStop(){
+void moveStop() {
   analogWrite(PWM_MOVE, 0);
   delay(50);
   leftReverse = false;
@@ -94,13 +95,13 @@ void moveStop(){
 
 //=======================================================
 // Subscriber Callback Function
-void velCallback( const geometry_msgs::Twist& vel){
+void velCallback( const geometry_msgs::Twist& vel) {
   moveStop();
   float vel_x = vel.linear.x; // Moving Forward Speed
   float ang_z = vel.angular.z; // Angle to Turn
-  if (vel_x!=0){
+  if (vel_x != 0) {
     moveForward();
-  }else if (ang_z!=0){
+  } else if (ang_z != 0) {
     moveTurn(ang_z);
   }
 }
@@ -115,19 +116,21 @@ void setup() {
   pinMode(LEFT_REVERSE, OUTPUT);
   pinMode(RIGHT_REVERSE, OUTPUT);
   moveStop();
+  // Serial.begin(9600);
 
   // ROS
   robot.initNode();
   robot.subscribe(sub_cmd_vel);
-  broadcaster.init(robot);
+  //broadcaster.init(robot);
   robot.advertise(pub_odom);
 
 }
 
 void loop() {
   // SpinOnce Check for instructions
-  //robot.spinOnce();
-  if (Serial.available()>0){
+  robot.spinOnce();
+/*
+  if (Serial.available() > 0) {
     char cmd = Serial.read();
     switch (cmd) {
       case 'w':
@@ -146,15 +149,16 @@ void loop() {
 
   }
 
+*/
   // Check Hall pins of both wheels for Rising Edge
   pollHallPins();
-  
+
   // Publish Odometry
   publishOdom();
 }
 
 
-void pollHallPins(){
+void pollHallPins() {
   // Left wheel polling
   left_hall_val = analogRead(LEFT_HALL_IN);
   //Serial.println(left_hall_val);
@@ -163,12 +167,12 @@ void pollHallPins(){
       left_wasLowLevel = false;  // Reset edge detector
 
       // Odometry Update
-      updateOdom(1); 
+      updateOdom(1);
     }
-  }else {
+  } else {
     left_wasLowLevel = true;
   }
-  
+
 
   // Right Wheel Polling
   right_hall_val = analogRead(RIGHT_HALL_IN);
@@ -180,80 +184,150 @@ void pollHallPins(){
       // Odometry Update
       updateOdom(-1);
     }
-  }else {
+  } else {
     right_wasLowLevel = true;
   }
 }
 
 // Function turn param takes +1 or -1 depending on left wheel or right wheel poll
 void updateOdom(int turn) {
-  float prev_theta = theta;
+  if (turn > 0) {
+    leftHallCount++;
+    float prev_theta = theta;
+    if (leftReverse) {
+      theta = theta + THETA_DELTA;
 
-  if (turn>0){
-    leftHallCount++;    
-    // Serial.print(leftHallCount);
-    if (leftReverse){
+      if (theta > 3.1416) {
+        theta = theta - 6.2832;
+      }
+      if (prev_theta >= 0 && prev_theta < 1.5708) {
+        x = x - abs(ROBOT_HALF_WIDTH * (sin(prev_theta) - sin(theta)));
+        y = y - abs(ROBOT_HALF_WIDTH * (cos(theta) - cos(prev_theta)));
+      }
+      else if (prev_theta >= 1.5708 && prev_theta < 3.1416) {
+        x = x + abs(ROBOT_HALF_WIDTH * (sin(prev_theta) - sin(theta)));
+        y = y - abs(ROBOT_HALF_WIDTH * (cos(theta) - cos(prev_theta)));
+      }
+      else if (prev_theta >= -3.1416 && prev_theta < -1.5708) {
+        x = x + abs(ROBOT_HALF_WIDTH * (sin(prev_theta) - sin(theta)));
+        y = y + abs(ROBOT_HALF_WIDTH * (cos(theta) - cos(prev_theta)));
+      }
+      else if (prev_theta >= -1.5708 && prev_theta < 0) {
+        x = x - abs(ROBOT_HALF_WIDTH * (sin(prev_theta) - sin(theta)));
+        y = y + abs(ROBOT_HALF_WIDTH * (cos(theta) - cos(prev_theta)));
+      }
+    } else {
       theta = theta - THETA_DELTA;
-      y = y - ROBOT_HALF_WIDTH*(cos(theta) - cos(prev_theta));
-      x = x - ROBOT_HALF_WIDTH*(sin(prev_theta) - sin(theta));
-    }else{
-      theta = theta + THETA_DELTA;
-      y = y + ROBOT_HALF_WIDTH*(cos(theta) - cos(prev_theta));
-      x = x + ROBOT_HALF_WIDTH*(sin(prev_theta) - sin(theta));
+      if (theta < -3.1416) {
+        theta = theta + 6.2832;
+      }
+      if (prev_theta <= 1.5708 && prev_theta > 0) {
+        x = x + abs(ROBOT_HALF_WIDTH * (sin(prev_theta) - sin(theta)));
+        y = y + abs(ROBOT_HALF_WIDTH * (cos(theta) - cos(prev_theta)));
+      }
+      else if (prev_theta <= 0 && prev_theta > -1.5708) {
+        x = x + abs(ROBOT_HALF_WIDTH * (sin(prev_theta) - sin(theta)));
+        y = y - abs(ROBOT_HALF_WIDTH * (cos(theta) - cos(prev_theta)));
+      }
+      else if (prev_theta <= -1.5708 && prev_theta > -3.1416) {
+        x = x - abs(ROBOT_HALF_WIDTH * (sin(prev_theta) - sin(theta)));
+        y = y - abs(ROBOT_HALF_WIDTH * (cos(theta) - cos(prev_theta)));
+      }
+      else if (prev_theta <= 3.1416 && prev_theta > 1.5708) {
+        x = x - abs(ROBOT_HALF_WIDTH * (sin(prev_theta) - sin(theta)));
+        y = y + abs(ROBOT_HALF_WIDTH * (cos(theta) - cos(prev_theta)));
+      }
     }
-    
-  }else{
-    rightHallCount++;    
-    // Serial.print("              ");
-    // Serial.println(rightHallCount);
-    if (rightReverse){
-      theta = theta + THETA_DELTA;
-      y = y - ROBOT_HALF_WIDTH*(cos(theta) - cos(prev_theta));
-      x = x + ROBOT_HALF_WIDTH*(sin(prev_theta) - sin(theta));
-    }else{
+  } else {
+    rightHallCount++;
+    float prev_theta = theta;
+
+    if (rightReverse) {
       theta = theta - THETA_DELTA;
-      y = y + ROBOT_HALF_WIDTH*(cos(theta) - cos(prev_theta));
-      x = x - ROBOT_HALF_WIDTH*(sin(prev_theta) - sin(theta));
+      if (theta < -3.1416) {
+        theta = theta + 6.2832;
+      }
+      if (prev_theta <= 0 && prev_theta > -1.5708) {
+        x = x - abs(ROBOT_HALF_WIDTH * (sin(prev_theta) - sin(theta)));
+        y = y + abs(ROBOT_HALF_WIDTH * (cos(theta) - cos(prev_theta)));
+      }
+      else if (prev_theta <= -1.5708 && prev_theta > -3.1416) {
+        x = x + abs(ROBOT_HALF_WIDTH * (sin(prev_theta) - sin(theta)));
+        y = y + abs(ROBOT_HALF_WIDTH * (cos(theta) - cos(prev_theta)));
+      }
+      else if (prev_theta <= 3.1416 && prev_theta > 1.5708) {
+        x = x + abs(ROBOT_HALF_WIDTH * (sin(prev_theta) - sin(theta)));
+        y = y - abs(ROBOT_HALF_WIDTH * (cos(theta) - cos(prev_theta)));
+      }
+      else if (prev_theta <= 1.5708 && prev_theta > 0) {
+        x = x - abs(ROBOT_HALF_WIDTH * (sin(prev_theta) - sin(theta)));
+        y = y - abs(ROBOT_HALF_WIDTH * (cos(theta) - cos(prev_theta)));
+      }
+    } else {
+      theta = theta + THETA_DELTA;
+      if (theta > 3.1416) {
+        theta = theta - 6.2832;
+      }
+      if (prev_theta >= 0 && prev_theta < 1.5708) {
+        x = x + abs(ROBOT_HALF_WIDTH * (sin(prev_theta) - sin(theta)));
+        y = y + abs(ROBOT_HALF_WIDTH * (cos(theta) - cos(prev_theta)));
+      }
+      else if (prev_theta >= 1.5708 && prev_theta < 3.1416) {
+        x = x - abs(ROBOT_HALF_WIDTH * (sin(prev_theta) - sin(theta)));
+        y = y + abs(ROBOT_HALF_WIDTH * (cos(theta) - cos(prev_theta)));
+      }
+      else if (prev_theta >= -3.1416 && prev_theta < -1.5708) {
+        x = x - abs(ROBOT_HALF_WIDTH * (sin(prev_theta) - sin(theta)));
+        y = y - abs(ROBOT_HALF_WIDTH * (cos(theta) - cos(prev_theta)));
+      }
+      else if (prev_theta >= -1.5708 && prev_theta < 0) {
+        x = x + abs(ROBOT_HALF_WIDTH * (sin(prev_theta) - sin(theta)));
+        y = y - abs(ROBOT_HALF_WIDTH * (cos(theta) - cos(prev_theta)));
+      }
     }
   }
 }
 
 
-void publishOdom(){
-  geometry_msgs::Quaternion odom_quat = tf::createQuaternionFromYaw(theta);
-  // Broadcast to tf
-  t.header.frame_id = odom;
-  t.child_frame_id = base_link;
-  
-  t.transform.translation.x = x;
-  t.transform.translation.y = y;
-  
-  t.transform.rotation = odom_quat;
-  t.header.stamp = robot.now();
-  
-  broadcaster.sendTransform(t);
-  
-  // Publish to odom
-  odomMsg.header.stamp = robot.now();
-  odomMsg.header.frame_id = "odom";
+void publishOdom() {
 
-  odomMsg.pose.pose.position.x = x;
-  odomMsg.pose.pose.position.y = y;
-  odomMsg.pose.pose.position.z = 0.0;
-  odomMsg.pose.pose.orientation = odom_quat;
+    geometry_msgs::Quaternion odom_quat = tf::createQuaternionFromYaw(theta);
+   /*
+    // Broadcast to tf
+    t.header.frame_id = odom;
+    t.child_frame_id = base_link;
 
-  odomMsg.child_frame_id = "base_link";
-  // odomMsg.twist.twist.linear.x = vx;
-  // odomMsg.twist.twist.linear.y = vy;
-  // odomMsg.twist.twist.angular.z = vth;
-  
-  pub_odom.publish(&odomMsg);
+    t.transform.translation.x = x/1000;
+    t.transform.translation.y = y/1000;
 
+    t.transform.rotation = odom_quat;
+    t.header.stamp = robot.now();
 
+    broadcaster.sendTransform(t);
+*/
+    // Publish to odom
+    odomMsg.header.stamp = robot.now();
+    odomMsg.header.frame_id = "odom";
+
+    odomMsg.pose.pose.position.x = x;
+    odomMsg.pose.pose.position.y = y;
+    odomMsg.pose.pose.position.z = 0.0;
+    odomMsg.pose.pose.orientation = odom_quat;
+
+    odomMsg.child_frame_id = "base_link";
+    odomMsg.twist.twist.linear.x = 0;
+    odomMsg.twist.twist.linear.y = 0;
+    odomMsg.twist.twist.angular.z = 0;
+
+    pub_odom.publish(&odomMsg);
+
+  /*
   Serial.print("x: ");
   Serial.print(x);
   Serial.print("   y: ");
   Serial.print(y);
   Serial.print("   theta: ");
-  Serial.println(theta); 
+  Serial.println(theta);
+*/
+
 }
