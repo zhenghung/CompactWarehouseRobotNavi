@@ -59,8 +59,8 @@ void publishOdom();
 
 // ROS Subscriber and Publisher
 ros::Subscriber<geometry_msgs::Twist> sub_cmd_vel("cmd_vel" , velCallback);
-nav_msgs::Odometry odomMsg;
-ros::Publisher pub_odom("odom", &odomMsg);
+//nav_msgs::Odometry odomMsg;
+//ros::Publisher pub_odom("odom", &odomMsg);
 geometry_msgs::TransformStamped t;
 tf::TransformBroadcaster broadcaster;
 
@@ -124,7 +124,7 @@ void setup() {
     robot.initNode();
     robot.subscribe(sub_cmd_vel);   //cmd_vel
     broadcaster.init(robot);        //tf
-    robot.advertise(pub_odom);      //odom
+    //robot.advertise(pub_odom);      //odom
   #endif
 
 }
@@ -318,6 +318,7 @@ void publishOdom() {
 
     broadcaster.sendTransform(t);
 
+    /*
     // Publish to odom
     odomMsg.header.stamp = current_time;
     odomMsg.header.frame_id = "odom";
@@ -333,7 +334,7 @@ void publishOdom() {
     odomMsg.twist.twist.angular.z = 0.1;
 
     pub_odom.publish(&odomMsg);
-
+    */
   #endif
 
 }
