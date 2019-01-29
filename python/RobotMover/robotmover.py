@@ -58,9 +58,9 @@ if __name__ == '__main__':
         if cmd == 'w':
             mover.move_forward(float(dur))
         elif cmd == 'a':
-            mover.rotate_right(float(dur))
-        elif cmd == 'd':
             mover.rotate_left(float(dur))
+        elif cmd == 'd':
+            mover.rotate_right(float(dur))
 
 
 
