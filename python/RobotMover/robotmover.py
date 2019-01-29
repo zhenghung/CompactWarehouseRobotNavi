@@ -5,60 +5,62 @@ from geometry_msgs.msg import Twist
 
 class RobotMover:
     def __init__(self):
-        rospy.init_node('GoForward', anonymous=False)
+        rospy.init_node('Mover', anonymous=True)
 
     def move_forward(self, duration):
-        cmd_vel = rospy.Publisher("cmd_vel", Twist, queue_size=10)
+        cmd_vel = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
         move_cmd = Twist()
         move_cmd.linear.x = 1.0 
-        move_cmd.angular.z = 0
 
-        begin_time = time.time()
-
-        while time.time() - begin_time < duration:
-            cmd_vel.publish(move_cmd)
+        cmd_vel.publish(move_cmd)
+        time.sleep(duration)
 
         move_cmd.linear.x = 0.0
-        move_cmd.angular.z = 0.0
         cmd_vel.publish(move_cmd)
 
     def rotate_left(self, duration):
-        cmd_vel = rospy.Publisher("cmd_vel", Twist, queue_size=10)
+        cmd_vel = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
         move_cmd = Twist()
-        move_cmd.linear.x = 0.0
         move_cmd.angular.z = 1.0
 
-        begin_time = time.time()
+        cmd_vel.publish(move_cmd)
+        time.sleep(duration)
 
-        while time.time() - begin_time < duration:
-            cmd_vel.publish(move_cmd)
-
-        move_cmd.linear.x = 0.0
         move_cmd.angular.z = 0.0
         cmd_vel.publish(move_cmd)
 
     def rotate_right(self, duration):
-        cmd_vel = rospy.Publisher("cmd_vel", Twist, queue_size=10)
+        cmd_vel = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
         move_cmd = Twist()
-        move_cmd.linear.x = 0.0
         move_cmd.angular.z = -1.0
 
-        begin_time = time.time()
+        cmd_vel.publish(move_cmd)
+        time.sleep(duration)
 
-        while time.time() - begin_time < duration:
-            cmd_vel.publish(move_cmd)
-
-        move_cmd.linear.x = 0.0
         move_cmd.angular.z = 0.0
         cmd_vel.publish(move_cmd)
 
 
 if __name__ == '__main__':
     mover = RobotMover()
+    mover.move_forward(0)   # Bug: First publish doesnt work
 
-    mover.move_forward(5)
-    time.sleep(1)
-    mover.rotate_right(2)
-    time.sleep(1)
-    mover.move_forward(5)
+    instruction=[]
+    while instruction != ['q']:
+        print "[cmd dur]: ",
+        instruction = raw_input().split()
+
+        if len(list(instruction))>1:
+            cmd, dur = instruction
+        else:
+            cmd = instruction
+
+        if cmd == 'w':
+            mover.move_forward(float(dur))
+        elif cmd == 'a':
+            mover.rotate_right(float(dur))
+        elif cmd == 'd':
+            mover.rotate_left(float(dur))
+
+
 
