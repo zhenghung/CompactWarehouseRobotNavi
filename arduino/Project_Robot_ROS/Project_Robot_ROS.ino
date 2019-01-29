@@ -1,4 +1,7 @@
 // DEFINE CONSTANTS
+// DEBUG
+//#define DEBUG
+
 // PINS
 #define PWM_MOVE 5
 #define LEFT_HALL_IN A8
@@ -13,7 +16,7 @@
 
 // PHYSICS CONSTANTS
 #define WHEEL_CIRCUMFERENCE 518.36
-#define ROBOT_HALF_WIDTH 280
+#define ROBOT_HALF_WIDTH 283.5
 // Change in bearing = (90*L*pi)/(pi*HalfWidth*180) = 0.115267
 #define THETA_DELTA 0.115267
 
@@ -60,9 +63,6 @@ nav_msgs::Odometry odomMsg;
 ros::Publisher pub_odom("odom", &odomMsg);
 geometry_msgs::TransformStamped t;
 tf::TransformBroadcaster broadcaster;
-
-char base_link[] = "/base_link";
-char odom[] = "/odom";
 
 //=======================================================
 // ROBOT MOVEMENT
@@ -116,40 +116,44 @@ void setup() {
   pinMode(LEFT_REVERSE, OUTPUT);
   pinMode(RIGHT_REVERSE, OUTPUT);
   moveStop();
-  // Serial.begin(9600);
 
-  // ROS
-  robot.initNode();
-  robot.subscribe(sub_cmd_vel);
-  //broadcaster.init(robot);
-  robot.advertise(pub_odom);
+  #ifdef DEBUG
+    Serial.begin(9600);
+  #else
+    // ROS
+    robot.initNode();
+    robot.subscribe(sub_cmd_vel);   //cmd_vel
+    broadcaster.init(robot);        //tf
+    robot.advertise(pub_odom);      //odom
+  #endif
 
 }
 
 void loop() {
-  // SpinOnce Check for instructions
-  robot.spinOnce();
-/*
-  if (Serial.available() > 0) {
-    char cmd = Serial.read();
-    switch (cmd) {
-      case 'w':
-        moveForward();
-        break;
-      case 'a':
-        moveTurn(1);
-        break;
-      case 'd':
-        moveTurn(-1);
-        break;
-      default:
-        moveStop();
-        break;
+
+  #ifdef DEBUG
+    if (Serial.available() > 0) {
+      char cmd = Serial.read();
+      switch (cmd) {
+        case 'w':
+          moveForward();
+          break;
+        case 'a':
+          moveTurn(1);
+          break;
+        case 'd':
+          moveTurn(-1);
+          break;
+        default:
+          moveStop();
+          break;
+      }
     }
+  #else
+    // SpinOnce Check for instructions
+    robot.spinOnce();
+  #endif
 
-  }
-
-*/
   // Check Hall pins of both wheels for Rising Edge
   pollHallPins();
 
@@ -290,44 +294,46 @@ void updateOdom(int turn) {
 
 
 void publishOdom() {
+  #ifdef DEBUG
+    Serial.print("x: ");
+    Serial.print(x);
+    Serial.print("   y: ");
+    Serial.print(y);
+    Serial.print("   theta: ");
+    Serial.println(theta);
 
+  #else
+    ros::Time current_time = robot.now();
     geometry_msgs::Quaternion odom_quat = tf::createQuaternionFromYaw(theta);
-   /*
+    
     // Broadcast to tf
-    t.header.frame_id = odom;
-    t.child_frame_id = base_link;
+    t.header.stamp = current_time;
+    t.header.frame_id = "odom";
+    t.child_frame_id = "base_link";
 
     t.transform.translation.x = x/1000;
     t.transform.translation.y = y/1000;
 
     t.transform.rotation = odom_quat;
-    t.header.stamp = robot.now();
 
     broadcaster.sendTransform(t);
-*/
-    // Publish to odom
-    odomMsg.header.stamp = robot.now();
-    odomMsg.header.frame_id = "odom";
 
-    odomMsg.pose.pose.position.x = x;
-    odomMsg.pose.pose.position.y = y;
+    // Publish to odom
+    odomMsg.header.stamp = current_time;
+    odomMsg.header.frame_id = "odom";
+    odomMsg.child_frame_id = "base_link";
+
+    odomMsg.pose.pose.position.x = x/1000;
+    odomMsg.pose.pose.position.y = y/1000;
     odomMsg.pose.pose.position.z = 0.0;
     odomMsg.pose.pose.orientation = odom_quat;
 
-    odomMsg.child_frame_id = "base_link";
-    odomMsg.twist.twist.linear.x = 0;
-    odomMsg.twist.twist.linear.y = 0;
-    odomMsg.twist.twist.angular.z = 0;
+    odomMsg.twist.twist.linear.x = 0.1;
+    odomMsg.twist.twist.linear.y = -0.1;
+    odomMsg.twist.twist.angular.z = 0.1;
 
     pub_odom.publish(&odomMsg);
 
-  /*
-  Serial.print("x: ");
-  Serial.print(x);
-  Serial.print("   y: ");
-  Serial.print(y);
-  Serial.print("   theta: ");
-  Serial.println(theta);
-*/
+  #endif
 
 }
