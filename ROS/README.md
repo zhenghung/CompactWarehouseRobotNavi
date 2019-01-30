@@ -1,4 +1,4 @@
-# Compact Warehouse Robot files for ROS/Gazebo
+# Compact Warehouse Robot files for ROS/Gazebo (WIP)
 Model contains a chassis, two caster wheels, differential drive, lidar.
 
 Required packages:
@@ -87,4 +87,4 @@ Use Rviz to set waypoints for navigation.
 TODO:
 
  - XACRO implementation.
- - Solve drift issue with map and odom.
+ - Update README
