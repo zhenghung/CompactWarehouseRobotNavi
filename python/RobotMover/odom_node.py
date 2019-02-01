@@ -4,30 +4,29 @@ from nav_msgs.msg import Odometry
 
 class Odom:
     def __init__(self):
-        rospy.init_node('odom', anonymous=False)
+        rospy.init_node('RepublishOdom', anonymous=False)
         self.odom = rospy.Publisher("/odom", Odometry, queue_size=10)
         self._tf_subsribe()
 
     def _tf_subsribe(self):
         listener = tf.TransformListener()
 
-        try:
-            while not rospy.is_shutdown():
-                try:
-                    (trans,rot) = listener.lookupTransform('', '', rospy.Time(0))
-                    self._odom_publish(trans, rot)
-                except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-                    continue
-        
-        except KeyboardInterrupt:
-            print "Ended with Keyboard Interrupt"
+        while not rospy.is_shutdown():
+            try:
+                (trans,rot) = listener.lookupTransform('', '', rospy.Time(0))
+                self._odom_publish(trans, rot)
+            except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+                continue
+    
+            except KeyboardInterrupt:
+                print "Ended with Keyboard Interrupt"
 
     def _odom_publish(self, trans, rot):
         odomMsg = Odometry()
 
         odomMsg.header.stamp = rospy.get_rostime()
         odomMsg.header.frame_id = "odom"
-        odomMsg.child_frame_id = "base_link"
+        odomMsg.child_frame_id = "chassis"
 
         odomMsg.pose.pose.position.x = trans[0]
         odomMsg.pose.pose.position.y = trans[1]

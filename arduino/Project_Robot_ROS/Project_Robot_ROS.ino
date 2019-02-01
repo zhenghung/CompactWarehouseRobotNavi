@@ -12,7 +12,8 @@
 // CONSTANTS
 #define LEFT_HALL_THRESH 1023
 #define RIGHT_HALL_THRESH 1023
-#define DUTY_BEGIN 101
+#define DUTY_MAX 105
+#define DUTY_MIN 95
 
 // PHYSICS CONSTANTS
 #define WHEEL_CIRCUMFERENCE 518.36
@@ -66,8 +67,9 @@ tf::TransformBroadcaster broadcaster;
 
 //=======================================================
 // ROBOT MOVEMENT
-void moveForward() {
-  analogWrite(PWM_MOVE, DUTY_BEGIN);
+void moveForward(float vel_x) {
+  int duty = (vel_x) * ((DUTY_MAX - DUTY_MIN)/2) + DUTY_MIN;
+  analogWrite(PWM_MOVE, duty);
 }
 
 void moveTurn(float angle) {
@@ -75,12 +77,12 @@ void moveTurn(float angle) {
     //Turn Left
     leftReverse = true;
     digitalWrite(LEFT_REVERSE, HIGH);
-    analogWrite(PWM_MOVE, DUTY_BEGIN);
+    analogWrite(PWM_MOVE, DUTY_MIN);
   } else if (angle < 0) {
     // Turn Right
     rightReverse = true;
     digitalWrite(RIGHT_REVERSE, HIGH);
-    analogWrite(PWM_MOVE, DUTY_BEGIN);
+    analogWrite(PWM_MOVE, DUTY_MIN);
   }
 }
 
@@ -100,7 +102,7 @@ void velCallback( const geometry_msgs::Twist& vel) {
   float vel_x = vel.linear.x; // Moving Forward Speed
   float ang_z = vel.angular.z; // Angle to Turn
   if (vel_x != 0) {
-    moveForward();
+    moveForward(vel_x);
   } else if (ang_z != 0) {
     moveTurn(ang_z);
   }
@@ -309,7 +311,7 @@ void publishOdom() {
     // Broadcast to tf
     t.header.stamp = current_time;
     t.header.frame_id = "odom";
-    t.child_frame_id = "base_link";
+    t.child_frame_id = "chassis";
 
     t.transform.translation.x = x/1000;
     t.transform.translation.y = y/1000;
@@ -322,7 +324,7 @@ void publishOdom() {
     // Publish to odom
     odomMsg.header.stamp = current_time;
     odomMsg.header.frame_id = "odom";
-    odomMsg.child_frame_id = "base_link";
+    odomMsg.child_frame_id = "chassis";
 
     odomMsg.pose.pose.position.x = x/1000;
     odomMsg.pose.pose.position.y = y/1000;
