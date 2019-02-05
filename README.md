@@ -52,3 +52,4 @@ $ echo "export ROS_MASTER_URI=http://{YOUR IP ADD}:11311" >> ~/.bashrc
 
 **Note that your local IP changes based on the network your computer is connected to, so edit the ~/.bashrc file as needed**
 
+test
