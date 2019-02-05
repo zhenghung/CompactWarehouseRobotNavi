@@ -71,16 +71,6 @@ Visualization Manager:
           Alpha: 1
           Show Axes: false
           Show Trail: false
-        wheel_left:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        wheel_right:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
       Name: RobotModel
       Robot Description: robot_description
       TF Prefix: ""
@@ -98,10 +88,6 @@ Visualization Manager:
           Value: true
         odom:
           Value: true
-        wheel_left:
-          Value: true
-        wheel_right:
-          Value: true
       Marker Scale: 0.5
       Name: TF
       Show Arrows: true
@@ -111,10 +97,6 @@ Visualization Manager:
         odom:
           chassis:
             lidar_generic:
-              {}
-            wheel_left:
-              {}
-            wheel_right:
               {}
       Update Interval: 0
       Value: true

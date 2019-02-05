@@ -71,51 +71,6 @@
       </geometry>
     </visual>
   </link>
-  <!-- Left wheel -->
-  <link name="wheel_left">
-    <inertial>
-      <mass value="5"/>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
-      <!-- x=0.165 y=0.05 z=0.165-->
-      <inertia ixx="0.0123" ixy="0" ixz="0" iyy="0.0226" iyz="0" izz="0.0123"/>
-    </inertial>
-
-    <collision name="wheel_left_collision">
-      <origin rpy="1.5707 0 0" xyz="0 0 0"/>
-        <geometry>
-          <cylinder length="0.05" radius="0.0835"/>
-        </geometry>
-    </collision>
-
-    <visual name="wheel_left_visual">
-      <origin rpy="0 0 0" xyz="0 0 0"/>
-      <geometry>
-          <mesh filename="package://warebot_description/meshes/WareBot_Wheel.dae" scale="1.0 1.0 1.0"/>
-      </geometry>
-    </visual>
-  </link>
-  <!-- Right wheel -->
-  <link name="wheel_right">
-    <inertial>
-      <mass value="5"/>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
-      <inertia ixx="0.0123" ixy="0" ixz="0" iyy="0.0226" iyz="0" izz="0.0123"/>
-    </inertial>
-
-    <collision name="warebot_wheel_right_collision">
-      <origin rpy="1.5707 0 0" xyz="0 0 0"/>
-      <geometry>
-        <cylinder length="0.05" radius="0.0835"/>
-      </geometry>
-    </collision>
-
-    <visual name="warebot_wheel_right_visual">
-      <origin rpy="0 0 3.14" xyz="0 0 0"/>
-      <geometry>
-        <mesh filename="package://warebot_description/meshes/WareBot_Wheel.dae" scale="1.0 1.0 1.0"/>
-      </geometry>
-    </visual>
-  </link>
   <!-- LIDAR -->
   <link name="laser">
     <inertial>
@@ -132,45 +87,4 @@
     <origin rpy="0 0 0" xyz="0.15 0 0.09"/>
     <axis xyz="0 0 1"/>
   </joint>
-
-  <joint name="wheel_left_hinge" type="continuous">
-    <parent link="chassis"/>
-    <child link="wheel_left"/>
-    <origin rpy="0 0 0" xyz="0.009 0.27 -0.0308"/>
-    <axis xyz="0 1 0"/>
-    <limit effort="90" velocity="20"/>
-  </joint>
-
-  <joint name="wheel_right_hinge" type="continuous">
-    <parent link="chassis"/>
-    <child link="wheel_right"/>
-      <origin rpy="0 0 0" xyz="-0.009 -0.27 -0.0308"/>
-      <axis xyz="0 1 0"/>
-      <limit effort="90" velocity="20"/>
-  </joint>
-  <!-- Differential drive controller -->
-  <gazebo>
-    <plugin filename="libgazebo_ros_diff_drive.so" name="differential_drive_controller">
-      <alwaysOn>true</alwaysOn>
-      <updateRate>20</updateRate>
-      <legacyMode>false</legacyMode>
-      <leftJoint>wheel_left_hinge</leftJoint>
-      <rightJoint>wheel_right_hinge</rightJoint>
-      <wheelSeparation>0.167</wheelSeparation>
-      <wheelDiameter>0.15</wheelDiameter>
-      <torque>20</torque>
-      <commandTopic>cmd_vel</commandTopic>
-      <odometryTopic>odom</odometryTopic>
-      <odometryFrame>odom</odometryFrame>
-      <robotBaseFrame>chassis</robotBaseFrame>
-      <publishWheelTF>false</publishWheelTF>
-      <publishWheelJointState>false</publishWheelJointState>
-      <rosDebugLevel>na</rosDebugLevel>
-      <wheelAcceleration>0</wheelAcceleration>
-      <wheelTorque>5</wheelTorque>
-      <odometrySource>world</odometrySource>
-      <publishTf>1</publishTf>
-      <publishOdomTF>true</publishOdomTF>
-    </plugin>
-  </gazebo>
 </robot>

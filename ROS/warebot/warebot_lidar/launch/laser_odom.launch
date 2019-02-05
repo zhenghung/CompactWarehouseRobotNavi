@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<launch>	
+	<node pkg="rf2o_laser_odometry" type="rf2o_laser_odometry_node" name="rf2o_laser_odometry">
+    	<param name="laser_scan_topic" value="/scan"/>
+    	<param name="base_frame_id" value="/chassis"/>
+    	<param name="odom_frame_id" value="odom"/>
+    	<param name="freq" value="10.0"/>
+	</node>
+</launch>
