@@ -8,12 +8,13 @@
 #define RIGHT_HALL_IN A9
 #define LEFT_REVERSE 8
 #define RIGHT_REVERSE 9
+#define BRAKE_PIN 11
 
 // CONSTANTS
 #define LEFT_HALL_THRESH 1023
 #define RIGHT_HALL_THRESH 1023
 #define DUTY_MAX 105
-#define DUTY_MIN 95
+#define DUTY_MIN 100
 
 // PHYSICS CONSTANTS
 #define WHEEL_CIRCUMFERENCE 518.36
@@ -68,11 +69,13 @@ tf::TransformBroadcaster broadcaster;
 //=======================================================
 // ROBOT MOVEMENT
 void moveForward(float vel_x) {
+  analogWrite(BRAKE_PIN, 0);
   int duty = (vel_x) * ((DUTY_MAX - DUTY_MIN)/2) + DUTY_MIN;
-  analogWrite(PWM_MOVE, duty);
+  analogWrite(PWM_MOVE, DUTY_MIN);
 }
 
 void moveTurn(float angle) {
+  analogWrite(BRAKE_PIN, 0);
   if (angle > 0) {
     //Turn Left
     leftReverse = true;
@@ -93,6 +96,8 @@ void moveStop() {
   rightReverse = false;
   digitalWrite(LEFT_REVERSE, LOW);
   digitalWrite(RIGHT_REVERSE, LOW);
+  analogWrite(BRAKE_PIN, 170);
+
 }
 
 //=======================================================
@@ -117,6 +122,7 @@ void setup() {
   pinMode(PWM_MOVE, OUTPUT);
   pinMode(LEFT_REVERSE, OUTPUT);
   pinMode(RIGHT_REVERSE, OUTPUT);
+  pinMode(BRAKE_PIN, OUTPUT);
   moveStop();
 
   #ifdef DEBUG
@@ -138,7 +144,7 @@ void loop() {
       char cmd = Serial.read();
       switch (cmd) {
         case 'w':
-          moveForward();
+          moveForward(0.1);
           break;
         case 'a':
           moveTurn(1);
