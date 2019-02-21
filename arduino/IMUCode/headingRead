@@ -25,7 +25,8 @@ LSM9DS1 imu;
 //#define PRINT_RAW
 #define PRINT_SPEED 250 // 250 ms between prints
 static unsigned long lastPrint = 0; // Keep track of print time
-float offset = 0; // store offset value
+float offset = 0; // initialise offset value
+float heading = 0; // initialise heading value
 
 // Earth's magnetic field varies by location. Add or subtract 
 // a declination to get a more accurate heading. Calculate 
@@ -76,22 +77,28 @@ void loop()
     imu.readMag();
   }
 
-  if (lastPrint == 0)
-  {
-    offset = printHeading(imu.ax, imu.ay, imu.az, -imu.my, -imu.mx, imu.mz, 0);
-    Serial.println();
-
-    lastPrint = millis(); // Update lastPrint time
-  }
   
-  else if ((lastPrint + PRINT_SPEED) < millis())
+  if ((lastPrint + PRINT_SPEED) < millis())
   {
-    // Print the heading
-    printHeading(imu.ax, imu.ay, imu.az, 
+    if (lastPrint <= 0)
+    {
+      offset = calcHeading(imu.ax, imu.ay, imu.az, -imu.my, -imu.mx, imu.mz, 0);
+      Serial.print("Offset: "); Serial.println(offset, 2);
+      Serial.println();
+
+      lastPrint = millis(); // Update lastPrint time
+    }
+    else
+    {
+      // Print the heading
+      heading = calcHeading(imu.ax, imu.ay, imu.az, 
                  -imu.my, -imu.mx, imu.mz, offset);
-    Serial.println();
+      //Serial.print("Heading: "); Serial.println(heading, 2);
+      Serial.print("Offset heading: "); Serial.println(heading-offset, 2);
+      Serial.println();
     
     lastPrint = millis(); // Update lastPrint time
+    }
   }
 }
 
@@ -146,7 +153,7 @@ void printMag()
 
 // Calculate heading
 // http://www51.honeywell.com/aero/common/documents/myaerospacecatalog-documents/Defense_Brochures-documents/Magnetic__Literature_Application_notes-documents/AN203_Compass_Heading_Using_Magnetometers.pdf
-float printHeading(float ax, float ay, float az, float mx, float my, float mz, float offset)
+float calcHeading(float ax, float ay, float az, float mx, float my, float mz, float offset)
 { 
   float heading;
   if (my == 0)
@@ -159,6 +166,5 @@ float printHeading(float ax, float ay, float az, float mx, float my, float mz, f
   if (heading > PI) heading -= (2 * PI);
   else if (heading < -PI) heading += (2 * PI);
   
-  Serial.print("Heading: "); Serial.println(heading-offset, 2);
   return heading; 
 }
