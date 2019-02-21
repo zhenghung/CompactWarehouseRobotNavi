@@ -46,8 +46,8 @@ $ hostname -I
 2. Add the config to your .bashrc file, replacing `<Remote Computer IP>` with the local IP address, e.g. `10.42.0.1`. 
 ```
 $ echo "export ROS_IP=0.0.0.0" >> ~/.bashrc
-$ echo "export ROS_HOSTNAME={YOUR IP ADD}" >> ~/.bashrc
-$ echo "export ROS_MASTER_URI=http://{YOUR IP ADD}:11311" >> ~/.bashrc
+$ echo "export ROS_HOSTNAME=<Remote Computer IP>" >> ~/.bashrc
+$ echo "export ROS_MASTER_URI=http://<Remote Computer IP>:11311" >> ~/.bashrc
 ```
 
 **Note that your local IP changes based on the network your computer is connected to, so edit the ~/.bashrc file as needed**
