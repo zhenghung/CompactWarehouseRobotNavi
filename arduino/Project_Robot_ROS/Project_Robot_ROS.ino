@@ -6,8 +6,8 @@
 #define PWM_MOVE 5
 #define LEFT_HALL_IN A8
 #define RIGHT_HALL_IN A9
-#define LEFT_REVERSE 8
-#define RIGHT_REVERSE 9
+#define LEFT_REVERSE 2
+#define RIGHT_REVERSE 3
 #define BRAKE_PIN 11
 
 // IMU
