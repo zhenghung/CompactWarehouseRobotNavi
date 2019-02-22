@@ -127,7 +127,7 @@ void velCallback( const geometry_msgs::Twist& vel) {
 
 //=======================================================
 // IMU
-float getHeading( float mx, float my, float mz){
+float getHeading( float mx, float my, float mz, float offset){
   float heading;
   if (my == 0) {
     heading = (mx < 0) ? PI : 0;
@@ -136,6 +136,8 @@ float getHeading( float mx, float my, float mz){
   }
   heading -= DECLINATION * PI / 180;
   
+  heading -= offset;
+
   if (heading > PI) {
     heading -= (2 * PI);
   } else if (heading < -PI) {
@@ -161,6 +163,7 @@ void setup() {
   imu.settings.device.mAddress = LSM9DS1_M;
   imu.settings.device.agAddress = LSM9DS1_AG;
   imu.begin();
+  headingOffset = getHeading(imu.mx, imu.my, imu.mz, 0);
 
   #ifdef DEBUG
     Serial.begin(9600);
@@ -241,7 +244,7 @@ void pollHallPins() {
 // Function turn param takes +1 or -1 depending on left wheel or right wheel poll
 void updateOdom(int turn) {
   float prev_theta = theta;
-  theta = getHeading(imu.mx, imu.my, imu.mz);
+  theta = getHeading(imu.mx, imu.my, imu.mz, headingOffset);
 
   if (turn > 0) {
     leftHallCount++;
