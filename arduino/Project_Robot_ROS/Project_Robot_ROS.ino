@@ -10,6 +10,11 @@
 #define RIGHT_REVERSE 9
 #define BRAKE_PIN 11
 
+// IMU
+#define LSM9DS1_M	0x1E // Would be 0x1C if SDO_M is LOW
+#define LSM9DS1_AG	0x6B // Would be 0x6A if SDO_AG is LOW
+#define DECLINATION -8.58 // Declination (degrees) in Boulder, CO.
+
 // CONSTANTS
 #define LEFT_HALL_THRESH 1023
 #define RIGHT_HALL_THRESH 1023
@@ -30,10 +35,16 @@
 #include <tf/tf.h>
 #include <tf/transform_broadcaster.h>
 
+// IMU Package
+#include <Wire.h>
+#include <SPI.h>
+#include <SparkFunLSM9DS1.h>
+
 
 //=======================================================
 // Globals
 ros::NodeHandle robot;
+LSM9DS1 imu;
 
 // Rising Edge
 bool left_wasLowLevel = false;
@@ -47,6 +58,7 @@ unsigned long rightHallCount = 0;
 volatile float x = 0;
 volatile float y = 0;
 volatile float theta = 0;
+volatile float headingOffset = 0;
 bool leftReverse = false;
 bool rightReverse = false;
 
@@ -114,6 +126,25 @@ void velCallback( const geometry_msgs::Twist& vel) {
 }
 
 //=======================================================
+// IMU
+float getHeading( float mx, float my, float mz){
+  float heading;
+  if (my == 0) {
+    heading = (mx < 0) ? PI : 0;
+  } else {
+    heading = atan2(mx, my);
+  }
+  heading -= DECLINATION * PI / 180;
+  
+  if (heading > PI) {
+    heading -= (2 * PI);
+  } else if (heading < -PI) {
+    heading += (2 * PI);
+  }
+  return heading;
+}
+
+//=======================================================
 // Main Setup
 void setup() {
   // Setup Pins
@@ -124,6 +155,12 @@ void setup() {
   pinMode(RIGHT_REVERSE, OUTPUT);
   pinMode(BRAKE_PIN, OUTPUT);
   moveStop();
+
+  // Setup IMU
+  imu.settings.device.commInterface = IMU_MODE_I2C;
+  imu.settings.device.mAddress = LSM9DS1_M;
+  imu.settings.device.agAddress = LSM9DS1_AG;
+  imu.begin();
 
   #ifdef DEBUG
     Serial.begin(9600);
@@ -203,15 +240,12 @@ void pollHallPins() {
 
 // Function turn param takes +1 or -1 depending on left wheel or right wheel poll
 void updateOdom(int turn) {
+  float prev_theta = theta;
+  theta = getHeading(imu.mx, imu.my, imu.mz);
+
   if (turn > 0) {
     leftHallCount++;
-    float prev_theta = theta;
     if (leftReverse) {
-      theta = theta + THETA_DELTA;
-
-      if (theta > 3.1416) {
-        theta = theta - 6.2832;
-      }
       if (prev_theta >= 0 && prev_theta < 1.5708) {
         x = x - abs(ROBOT_HALF_WIDTH * (sin(prev_theta) - sin(theta)));
         y = y - abs(ROBOT_HALF_WIDTH * (cos(theta) - cos(prev_theta)));
@@ -229,10 +263,6 @@ void updateOdom(int turn) {
         y = y + abs(ROBOT_HALF_WIDTH * (cos(theta) - cos(prev_theta)));
       }
     } else {
-      theta = theta - THETA_DELTA;
-      if (theta < -3.1416) {
-        theta = theta + 6.2832;
-      }
       if (prev_theta <= 1.5708 && prev_theta > 0) {
         x = x + abs(ROBOT_HALF_WIDTH * (sin(prev_theta) - sin(theta)));
         y = y + abs(ROBOT_HALF_WIDTH * (cos(theta) - cos(prev_theta)));
@@ -252,13 +282,8 @@ void updateOdom(int turn) {
     }
   } else {
     rightHallCount++;
-    float prev_theta = theta;
 
     if (rightReverse) {
-      theta = theta - THETA_DELTA;
-      if (theta < -3.1416) {
-        theta = theta + 6.2832;
-      }
       if (prev_theta <= 0 && prev_theta > -1.5708) {
         x = x - abs(ROBOT_HALF_WIDTH * (sin(prev_theta) - sin(theta)));
         y = y + abs(ROBOT_HALF_WIDTH * (cos(theta) - cos(prev_theta)));
@@ -276,10 +301,6 @@ void updateOdom(int turn) {
         y = y - abs(ROBOT_HALF_WIDTH * (cos(theta) - cos(prev_theta)));
       }
     } else {
-      theta = theta + THETA_DELTA;
-      if (theta > 3.1416) {
-        theta = theta - 6.2832;
-      }
       if (prev_theta >= 0 && prev_theta < 1.5708) {
         x = x + abs(ROBOT_HALF_WIDTH * (sin(prev_theta) - sin(theta)));
         y = y + abs(ROBOT_HALF_WIDTH * (cos(theta) - cos(prev_theta)));
