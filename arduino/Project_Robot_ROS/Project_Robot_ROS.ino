@@ -131,16 +131,16 @@ float getHeading(float offset){
   imu.readMag();
   
   float heading;
-  float Xm_off, Ym_off, Zm_off, Xm_cal, Ym_cal, Zm_cal;
-  Xm_off = imu.mx + 306.203686; //X-axis combined bias (Non calibrated data - bias)
-  Ym_off = imu.my + 1232.855613; //Y-axis combined bias (Default: substracting bias)
-  Zm_off = imu.mz - 695.984327; //Z-axis combined bias
+  // float Xm_off, Ym_off, Zm_off, Xm_cal, Ym_cal, Zm_cal;
+  // Xm_off = imu.mx + 306.203686; //X-axis combined bias (Non calibrated data - bias)
+  // Ym_off = imu.my + 1232.855613; //Y-axis combined bias (Default: substracting bias)
+  // Zm_off = imu.mz - 695.984327; //Z-axis combined bias
 
-  Xm_cal =  0.018511*Xm_off + 0.001908*Ym_off + 0.000262*Zm_off - 16; //X-axis correction for combined scale factors (Default: positive factors)
-  Ym_cal =  0.001908*Xm_off + 0.018923*Ym_off - 0.000177*Zm_off - 42; //Y-axis correction for combined scale factors
-  Zm_cal =  0.000262*Xm_off - 0.000177*Ym_off + 0.018239*Zm_off; //Z-axis correction for combined scale factors
+  // Xm_cal =  0.018511*Xm_off + 0.001908*Ym_off + 0.000262*Zm_off - 16; //X-axis correction for combined scale factors (Default: positive factors)
+  // Ym_cal =  0.001908*Xm_off + 0.018923*Ym_off - 0.000177*Zm_off - 42; //Y-axis correction for combined scale factors
+  // Zm_cal =  0.000262*Xm_off - 0.000177*Ym_off + 0.018239*Zm_off; //Z-axis correction for combined scale factors
 
-  heading = atan2(Xm_cal, Ym_cal);  
+  heading = atan2(imu.my-1000, imu.mx-100);  
   heading -= offset;
 
   if (heading > PI) {
