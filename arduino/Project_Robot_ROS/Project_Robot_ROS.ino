@@ -20,12 +20,13 @@
 #define RIGHT_HALL_THRESH 1023
 #define DUTY_MAX 105
 #define DUTY_MIN 100
-#define BRAKE_DUTY 200
+#define BRAKE_DUTY 220
 
 // PHYSICS CONSTANTS
 #define WHEEL_CIRCUMFERENCE 518.36
 #define PULSE_WEIGHT 0.5
 #define PULSE_DIST 34.56
+#define PULSE_INCREMENT (PULSE_WEIGHT*PULSE_DIST)
 #define ROBOT_HALF_WIDTH 283.5
 
 // ROS Package and std_msg format
@@ -68,7 +69,7 @@ void moveStop();
 void velCallback( const geometry_msgs::Twist& vel);
 float getHeading(float offset);
 void pollHallPins();
-void updateOdom(int turn);
+void updateOdom();
 void publishOdom();
 
 // ROS Subscriber and Publisher
@@ -254,8 +255,8 @@ void updateOdom() {
   // Moving Forward
   if (!leftReverse && !rightReverse) {
     // Moving Forward by one pulse
-    x = x + PULSE_WEIGHT*PULSE_DIST*cos(theta);
-    y = y + PULSE_WEIGHT*PULSE_DIST*sin(theta);
+    x = x + PULSE_INCREMENT*cos(theta);
+    y = y + PULSE_INCREMENT*sin(theta);
   }
 }
 
