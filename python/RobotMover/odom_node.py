@@ -5,16 +5,17 @@ from nav_msgs.msg import Odometry
 class Odom:
     def __init__(self):
         rospy.init_node('RepublishOdom', anonymous=False)
-        self.odom = rospy.Publisher("/odom", Odometry, queue_size=10)
-        self._tf_subsribe()
+        self.odom = rospy.Publisher("/odom", Odometry, queue_size=1)
+        self._tf_subscribe()
 
-    def _tf_subsribe(self):
+    def _tf_subscribe(self):
         listener = tf.TransformListener()
 
         while not rospy.is_shutdown():
             try:
-                (trans,rot) = listener.lookupTransform('', '', rospy.Time(0))
+                (trans,rot) = listener.lookupTransform('/odom', '/chassis', rospy.Time(0))
                 self._odom_publish(trans, rot)
+                
             except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
                 continue
     

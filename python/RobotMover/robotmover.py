@@ -1,11 +1,14 @@
 import time
 import rospy
+import math
+from pose import Localization 
 from geometry_msgs.msg import Twist
 
 
 class RobotMover:
     def __init__(self):
         rospy.init_node('Mover', anonymous=True)
+        self.robotpose = Localization()
 
     def move_forward(self, duration):
         cmd_vel = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
@@ -40,6 +43,30 @@ class RobotMover:
         move_cmd.angular.z = 0.0
         cmd_vel.publish(move_cmd)
 
+    def rotate_angle(self, angle):
+        cmd_vel = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
+        move_cmd = Twist()
+        move_cmd.angular.z = 1.0
+
+        cmd_vel.publish(move_cmd)
+                        
+        def _convert_within_2pi(phi):
+            if phi > math.pi:
+                return phi - 2*math.pi
+            elif phi < -math.pi:
+                return phi + 2*math.pi
+            else:
+                return phi
+
+        target_radians = angle * math.pi/180
+        target = _convert_within_2pi(self.robotpose.positionPitch + target_radians)
+        theta = self.robotpose.positionPitch
+
+        while (abs(_convert_within_2pi(theta - target)) > 0.1):
+            theta = self.robotpose.positionPitch
+
+        move_cmd.angular.z = 0.0
+        cmd_vel.publish(move_cmd)
 
 if __name__ == '__main__':
     mover = RobotMover()
@@ -61,6 +88,8 @@ if __name__ == '__main__':
             mover.rotate_left(float(dur))
         elif cmd == 'd':
             mover.rotate_right(float(dur))
+        elif cmd == 'x':
+            mover.rotate_angle((float(dur)))
 
 
 

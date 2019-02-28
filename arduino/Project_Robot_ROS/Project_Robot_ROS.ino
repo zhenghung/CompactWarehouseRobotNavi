@@ -6,21 +6,28 @@
 #define PWM_MOVE 5
 #define LEFT_HALL_IN A8
 #define RIGHT_HALL_IN A9
-#define LEFT_REVERSE 8
-#define RIGHT_REVERSE 9
+#define LEFT_REVERSE 2
+#define RIGHT_REVERSE 3
 #define BRAKE_PIN 11
+
+// IMU
+#define LSM9DS1_M	0x1E // Would be 0x1C if SDO_M is LOW
+#define LSM9DS1_AG	0x6B // Would be 0x6A if SDO_AG is LOW
+#define DECLINATION -8.58 // Declination (degrees) in Boulder, CO.
 
 // CONSTANTS
 #define LEFT_HALL_THRESH 1023
 #define RIGHT_HALL_THRESH 1023
 #define DUTY_MAX 105
 #define DUTY_MIN 100
+#define BRAKE_DUTY 220
 
 // PHYSICS CONSTANTS
 #define WHEEL_CIRCUMFERENCE 518.36
+#define PULSE_WEIGHT 0.5
+#define PULSE_DIST 34.56
+#define PULSE_INCREMENT (PULSE_WEIGHT*PULSE_DIST)
 #define ROBOT_HALF_WIDTH 283.5
-// Change in bearing = (90*L*pi)/(pi*HalfWidth*180) = 0.115267
-#define THETA_DELTA 0.115267
 
 // ROS Package and std_msg format
 #include <ros.h>
@@ -30,10 +37,16 @@
 #include <tf/tf.h>
 #include <tf/transform_broadcaster.h>
 
+// IMU Package
+#include <Wire.h>
+#include <SPI.h>
+#include <SparkFunLSM9DS1.h>
+
 
 //=======================================================
 // Globals
 ros::NodeHandle robot;
+LSM9DS1 imu;
 
 // Rising Edge
 bool left_wasLowLevel = false;
@@ -42,11 +55,10 @@ bool right_wasLowLevel = false;
 int right_hall_val;
 
 // Odometry
-unsigned long leftHallCount = 0;
-unsigned long rightHallCount = 0;
 volatile float x = 0;
 volatile float y = 0;
 volatile float theta = 0;
+volatile float headingOffset = 0;
 bool leftReverse = false;
 bool rightReverse = false;
 
@@ -55,8 +67,9 @@ void moveForward();
 void moveTurn(float angle);
 void moveStop();
 void velCallback( const geometry_msgs::Twist& vel);
+float getHeading(float offset);
 void pollHallPins();
-void updateOdom(int turn);
+void updateOdom();
 void publishOdom();
 
 // ROS Subscriber and Publisher
@@ -96,7 +109,7 @@ void moveStop() {
   rightReverse = false;
   digitalWrite(LEFT_REVERSE, LOW);
   digitalWrite(RIGHT_REVERSE, LOW);
-  analogWrite(BRAKE_PIN, 170);
+  analogWrite(BRAKE_PIN, BRAKE_DUTY);
 
 }
 
@@ -114,6 +127,33 @@ void velCallback( const geometry_msgs::Twist& vel) {
 }
 
 //=======================================================
+// IMU
+float getHeading(float offset){
+  imu.readMag();
+  
+  float heading;
+  // float Xm_off, Ym_off, Zm_off, Xm_cal, Ym_cal, Zm_cal;
+  // Xm_off = imu.mx + 306.203686; //X-axis combined bias (Non calibrated data - bias)
+  // Ym_off = imu.my + 1232.855613; //Y-axis combined bias (Default: substracting bias)
+  // Zm_off = imu.mz - 695.984327; //Z-axis combined bias
+
+  // Xm_cal =  0.018511*Xm_off + 0.001908*Ym_off + 0.000262*Zm_off - 16; //X-axis correction for combined scale factors (Default: positive factors)
+  // Ym_cal =  0.001908*Xm_off + 0.018923*Ym_off - 0.000177*Zm_off - 42; //Y-axis correction for combined scale factors
+  // Zm_cal =  0.000262*Xm_off - 0.000177*Ym_off + 0.018239*Zm_off; //Z-axis correction for combined scale factors
+
+  heading = atan2(imu.my-1000, imu.mx-100);  
+  heading -= offset;
+
+  if (heading > PI) {
+    heading -= (2 * PI);
+  } else if (heading < -PI) {
+    heading += (2 * PI);
+  }
+  
+  return heading;
+}
+
+//=======================================================
 // Main Setup
 void setup() {
   // Setup Pins
@@ -124,6 +164,13 @@ void setup() {
   pinMode(RIGHT_REVERSE, OUTPUT);
   pinMode(BRAKE_PIN, OUTPUT);
   moveStop();
+
+  // Setup IMU
+  imu.settings.device.commInterface = IMU_MODE_I2C;
+  imu.settings.device.mAddress = LSM9DS1_M;
+  imu.settings.device.agAddress = LSM9DS1_AG;
+  imu.begin();
+  headingOffset = getHeading(0);
 
   #ifdef DEBUG
     Serial.begin(9600);
@@ -162,6 +209,8 @@ void loop() {
     robot.spinOnce();
   #endif
 
+  theta = getHeading(headingOffset);
+  
   // Check Hall pins of both wheels for Rising Edge
   pollHallPins();
 
@@ -179,7 +228,7 @@ void pollHallPins() {
       left_wasLowLevel = false;  // Reset edge detector
 
       // Odometry Update
-      updateOdom(1);
+      updateOdom();
     }
   } else {
     left_wasLowLevel = true;
@@ -194,7 +243,7 @@ void pollHallPins() {
       right_wasLowLevel = false;  // Reset edge detector
 
       // Odometry Update
-      updateOdom(-1);
+      updateOdom();
     }
   } else {
     right_wasLowLevel = true;
@@ -202,101 +251,12 @@ void pollHallPins() {
 }
 
 // Function turn param takes +1 or -1 depending on left wheel or right wheel poll
-void updateOdom(int turn) {
-  if (turn > 0) {
-    leftHallCount++;
-    float prev_theta = theta;
-    if (leftReverse) {
-      theta = theta + THETA_DELTA;
-
-      if (theta > 3.1416) {
-        theta = theta - 6.2832;
-      }
-      if (prev_theta >= 0 && prev_theta < 1.5708) {
-        x = x - abs(ROBOT_HALF_WIDTH * (sin(prev_theta) - sin(theta)));
-        y = y - abs(ROBOT_HALF_WIDTH * (cos(theta) - cos(prev_theta)));
-      }
-      else if (prev_theta >= 1.5708 && prev_theta < 3.1416) {
-        x = x + abs(ROBOT_HALF_WIDTH * (sin(prev_theta) - sin(theta)));
-        y = y - abs(ROBOT_HALF_WIDTH * (cos(theta) - cos(prev_theta)));
-      }
-      else if (prev_theta >= -3.1416 && prev_theta < -1.5708) {
-        x = x + abs(ROBOT_HALF_WIDTH * (sin(prev_theta) - sin(theta)));
-        y = y + abs(ROBOT_HALF_WIDTH * (cos(theta) - cos(prev_theta)));
-      }
-      else if (prev_theta >= -1.5708 && prev_theta < 0) {
-        x = x - abs(ROBOT_HALF_WIDTH * (sin(prev_theta) - sin(theta)));
-        y = y + abs(ROBOT_HALF_WIDTH * (cos(theta) - cos(prev_theta)));
-      }
-    } else {
-      theta = theta - THETA_DELTA;
-      if (theta < -3.1416) {
-        theta = theta + 6.2832;
-      }
-      if (prev_theta <= 1.5708 && prev_theta > 0) {
-        x = x + abs(ROBOT_HALF_WIDTH * (sin(prev_theta) - sin(theta)));
-        y = y + abs(ROBOT_HALF_WIDTH * (cos(theta) - cos(prev_theta)));
-      }
-      else if (prev_theta <= 0 && prev_theta > -1.5708) {
-        x = x + abs(ROBOT_HALF_WIDTH * (sin(prev_theta) - sin(theta)));
-        y = y - abs(ROBOT_HALF_WIDTH * (cos(theta) - cos(prev_theta)));
-      }
-      else if (prev_theta <= -1.5708 && prev_theta > -3.1416) {
-        x = x - abs(ROBOT_HALF_WIDTH * (sin(prev_theta) - sin(theta)));
-        y = y - abs(ROBOT_HALF_WIDTH * (cos(theta) - cos(prev_theta)));
-      }
-      else if (prev_theta <= 3.1416 && prev_theta > 1.5708) {
-        x = x - abs(ROBOT_HALF_WIDTH * (sin(prev_theta) - sin(theta)));
-        y = y + abs(ROBOT_HALF_WIDTH * (cos(theta) - cos(prev_theta)));
-      }
-    }
-  } else {
-    rightHallCount++;
-    float prev_theta = theta;
-
-    if (rightReverse) {
-      theta = theta - THETA_DELTA;
-      if (theta < -3.1416) {
-        theta = theta + 6.2832;
-      }
-      if (prev_theta <= 0 && prev_theta > -1.5708) {
-        x = x - abs(ROBOT_HALF_WIDTH * (sin(prev_theta) - sin(theta)));
-        y = y + abs(ROBOT_HALF_WIDTH * (cos(theta) - cos(prev_theta)));
-      }
-      else if (prev_theta <= -1.5708 && prev_theta > -3.1416) {
-        x = x + abs(ROBOT_HALF_WIDTH * (sin(prev_theta) - sin(theta)));
-        y = y + abs(ROBOT_HALF_WIDTH * (cos(theta) - cos(prev_theta)));
-      }
-      else if (prev_theta <= 3.1416 && prev_theta > 1.5708) {
-        x = x + abs(ROBOT_HALF_WIDTH * (sin(prev_theta) - sin(theta)));
-        y = y - abs(ROBOT_HALF_WIDTH * (cos(theta) - cos(prev_theta)));
-      }
-      else if (prev_theta <= 1.5708 && prev_theta > 0) {
-        x = x - abs(ROBOT_HALF_WIDTH * (sin(prev_theta) - sin(theta)));
-        y = y - abs(ROBOT_HALF_WIDTH * (cos(theta) - cos(prev_theta)));
-      }
-    } else {
-      theta = theta + THETA_DELTA;
-      if (theta > 3.1416) {
-        theta = theta - 6.2832;
-      }
-      if (prev_theta >= 0 && prev_theta < 1.5708) {
-        x = x + abs(ROBOT_HALF_WIDTH * (sin(prev_theta) - sin(theta)));
-        y = y + abs(ROBOT_HALF_WIDTH * (cos(theta) - cos(prev_theta)));
-      }
-      else if (prev_theta >= 1.5708 && prev_theta < 3.1416) {
-        x = x - abs(ROBOT_HALF_WIDTH * (sin(prev_theta) - sin(theta)));
-        y = y + abs(ROBOT_HALF_WIDTH * (cos(theta) - cos(prev_theta)));
-      }
-      else if (prev_theta >= -3.1416 && prev_theta < -1.5708) {
-        x = x - abs(ROBOT_HALF_WIDTH * (sin(prev_theta) - sin(theta)));
-        y = y - abs(ROBOT_HALF_WIDTH * (cos(theta) - cos(prev_theta)));
-      }
-      else if (prev_theta >= -1.5708 && prev_theta < 0) {
-        x = x + abs(ROBOT_HALF_WIDTH * (sin(prev_theta) - sin(theta)));
-        y = y - abs(ROBOT_HALF_WIDTH * (cos(theta) - cos(prev_theta)));
-      }
-    }
+void updateOdom() {
+  // Moving Forward
+  if (!leftReverse && !rightReverse) {
+    // Moving Forward by one pulse
+    x = x + PULSE_INCREMENT*cos(theta);
+    y = y + PULSE_INCREMENT*sin(theta);
   }
 }
 

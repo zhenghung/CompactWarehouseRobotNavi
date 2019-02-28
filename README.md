@@ -50,6 +50,6 @@ $ echo "export ROS_HOSTNAME=<Remote Computer IP>" >> ~/.bashrc
 $ echo "export ROS_MASTER_URI=http://<Remote Computer IP>:11311" >> ~/.bashrc
 ```
 
-**Note that your local IP changes based on the network your computer is connected to, so edit the ~/.bashrc file as needed**
+**Note that your local IP changes based on the network your computer is connected to, so edit the ~/.bashrc file as needed, then source the file**
 
 test
