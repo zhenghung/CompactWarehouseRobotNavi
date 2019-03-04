@@ -1,0 +1,8 @@
+prefix=/home/iman/make_custom/devel
+
+Name: imu_read
+Description: Description of imu_read
+Version: 0.0.0
+Cflags: -I/home/iman/make_custom/devel/include
+Libs: -L/home/iman/make_custom/devel/lib 
+Requires: message_runtime
