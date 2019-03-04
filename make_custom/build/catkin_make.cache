@@ -1,0 +1,2 @@
+imu_read
+-DCATKIN_DEVEL_PREFIX=/home/iman/make_custom/devel -DCMAKE_INSTALL_PREFIX=/home/iman/make_custom/install -G Unix Makefiles
