@@ -90,3 +90,5 @@ Implemented using Tkinter and the ROS Action Library via Python.
 Run the `warebot_goal` package.
 
     rosrun warebot_goal move_client.py
+
+Reminder that move_base has a finite length (3m) for goals! Needs to be fixed, but when close enough, works perfectly.
