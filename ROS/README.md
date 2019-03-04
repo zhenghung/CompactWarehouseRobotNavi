@@ -82,9 +82,11 @@ Launch `navigation.launch` file.
 
     roslaunch warebot_navigation navigation.launch
 
-Use Rviz to set waypoints for navigation.
+Use Rviz to set waypoints for navigation or the provided Move Base Action GUI package!
 
-TODO:
+## Setting waypoints via GUI
+Implemented using Tkinter and the ROS Action Library via Python.
 
- - XACRO implementation.
- - Update README
+Run the `warebot_goal` package.
+
+    rosrun warebot_goal move_client.py
