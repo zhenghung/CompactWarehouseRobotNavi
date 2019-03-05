@@ -16,8 +16,8 @@
 #define DECLINATION -8.58 // Declination (degrees) in Boulder, CO.
 
 // CONSTANTS
-#define LEFT_HALL_THRESH 1023
-#define RIGHT_HALL_THRESH 1023
+#define LEFT_HALL_THRESH 100
+#define RIGHT_HALL_THRESH 100
 #define DUTY_MAX 105
 #define DUTY_MIN 100
 #define BRAKE_DUTY 220
@@ -225,6 +225,7 @@ void pollHallPins() {
   //Serial.println(left_hall_val);
   if (left_hall_val >= LEFT_HALL_THRESH) {
     if (left_wasLowLevel == true) {
+      //Serial.println("left");
       left_wasLowLevel = false;  // Reset edge detector
 
       // Odometry Update
@@ -240,6 +241,7 @@ void pollHallPins() {
   //Serial.println(right_hall_val);
   if (right_hall_val >= RIGHT_HALL_THRESH) {
     if (right_wasLowLevel == true) {
+      //Serial.println("         right");
       right_wasLowLevel = false;  // Reset edge detector
 
       // Odometry Update
