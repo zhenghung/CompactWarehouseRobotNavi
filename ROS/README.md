@@ -73,11 +73,13 @@ Use WSADX keys to move robot.
 It is assumed that a real LIDAR and differential drive is already in place.
 LIDAR needs to publish to `/scan` and differential drive to `/cmd_vel`.
 
+# After initial steps
+
 ## Using Rviz
 
 To view the  robot in rviz:
 
-    roslaunch warebot_description rviz_sim.launch
+    roslaunch warebot_description rviz.launch
 
 Note that this uses a different URDF model (`real.urdf`) compared to the simulated robot that has the `lidar_generic` frame changed to a blank `laser` frame which is typically needed for a real Lidar as well as removal of the differential drive frames.
 
