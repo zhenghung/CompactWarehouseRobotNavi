@@ -35,16 +35,14 @@ Note that some worlds require you to have the proper models in Gazebo. Many can 
 
 To view the simulated robot in rviz:
 
-    roslaunch warebot_description rviz_sim.launch
+    roslaunch warebot_description rviz_simgui.launch
 
 The simulated robot will appear in rviz as well as a GUI to control the two differential drive wheels.
 
 You can also run the simulated robot without the controller GUI by running:
 
-    roslaunch warebot_description rviz.launch
+    roslaunch warebot_description rviz_sim.launch
    
- Note: Currently, the real robot also uses the above rviz setup. This will be changed in the future!
-
 
 ## Differential drive movement
 We can now move the robot via `cmd_vel`.
@@ -71,6 +69,17 @@ In a new terminal:
 
 Use WSADX keys to move robot.
 
+# Using the Actual Robot
+It is assumed that a real LIDAR and differential drive is already in place.
+LIDAR needs to publish to `/scan` and differential drive to `/cmd_vel`.
+
+## Using Rviz
+
+To view the  robot in rviz:
+
+    roslaunch warebot_description rviz_sim.launch
+
+Note that this uses a different URDF model (`real.urdf`) compared to the simulated robot that has the `lidar_generic` frame changed to a blank `laser` frame which is typically needed for a real Lidar as well as removal of the differential drive frames.
 
 ## Filtering the LIDAR
 Due to the placement of the LIDAR, LaserScan registers hits on the simulated robot itself, which complicates mapping. We filter this out using a `laser_filters` node.
