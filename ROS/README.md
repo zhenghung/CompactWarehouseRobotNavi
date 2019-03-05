@@ -148,21 +148,21 @@ Note: Reminder that move_base has a finite length (3m) for goals! Needs to be fi
 
 1: Run the lidar:
 
-    rosrun rplidar_ros rplidar.launch
+    roslaunch rplidar_ros rplidar.launch
     
-2: Run the Laser Scan Matcher:
+2: Launch Rviz
 
-    rosrun warebot_lidar lsm.launch
+    roslaunch warebot_description rviz.launch
     
-3: Launch Rviz
+3: Run the Laser Scan Matcher:
 
-    rosrun warebot_description rviz.launch
-  
+    roslaunch warebot_lidar lsm.launch
+    
    -Set the LaserScan topic to `/scan_filtered`
 
 3: Launch navigation (move_base and amcl)
 
-    rosrun warebot_navigation navigation.launch
+    roslaunch warebot_navigation navigation.launch
     
 4: Set Rviz to show `Map` and `Path` accordingly
 
