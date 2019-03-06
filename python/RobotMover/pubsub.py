@@ -20,7 +20,7 @@ def listener():
 def msgCallback(msg):
 	x,y,t = msg.x, msg.y, msg.theta
 	odom_publish(x,y,t)
-        tf_publish(x,y,t)
+        #tf_publish(x,y,t)
         rospy.loginfo(rospy.get_name()+"(%.3f)"%(x))
 
 def odom_publish(x,y,t):
