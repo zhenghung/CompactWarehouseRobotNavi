@@ -116,13 +116,14 @@ void moveStop() {
 //=======================================================
 // Subscriber Callback Function
 void velCallback( const geometry_msgs::Twist& vel) {
-  moveStop();
   float vel_x = vel.linear.x; // Moving Forward Speed
   float ang_z = vel.angular.z; // Angle to Turn
   if (vel_x != 0) {
     moveForward(vel_x);
   } else if (ang_z != 0) {
     moveTurn(ang_z);
+  } else {
+    moveStop();
   }
 }
 
@@ -261,7 +262,9 @@ void updateOdom() {
     y = y + PULSE_INCREMENT*sin(theta);
   }
 }
-
+void publishMsg(){
+  
+}
 
 void publishOdom() {
   #ifdef DEBUG
