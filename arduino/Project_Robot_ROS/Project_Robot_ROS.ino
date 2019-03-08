@@ -3,7 +3,7 @@
 //#define DEBUG
 
 // PINS
-#define PWM_MOVE 5
+#define PWM_MOVE 6
 #define LEFT_HALL_IN A8
 #define RIGHT_HALL_IN A9
 #define LEFT_REVERSE 2
@@ -19,7 +19,7 @@
 #define LEFT_HALL_THRESH 100
 #define RIGHT_HALL_THRESH 100
 #define DUTY_MAX 105
-#define DUTY_MIN 100
+#define DUTY_MIN 102
 #define BRAKE_DUTY 220
 
 // PHYSICS CONSTANTS
@@ -34,8 +34,9 @@
 #include <ros/time.h>
 //#include <nav_msgs/Odometry.h>
 #include "geometry_msgs/Twist.h"
-#include <tf/tf.h>
-#include <tf/transform_broadcaster.h>
+// #include <tf/tf.h>
+// #include <tf/transform_broadcaster.h>
+#include <imu_read/imu_read.h>
 
 // IMU Package
 #include <Wire.h>
@@ -72,18 +73,33 @@ void pollHallPins();
 void updateOdom();
 void publishOdom();
 
+// ROS Messages
+// geometry_msgs::TransformStamped t;
+// tf::TransformBroadcaster broadcaster;
+imu_read::imu_read custom_msg;
+
 // ROS Subscriber and Publisher
 ros::Subscriber<geometry_msgs::Twist> sub_cmd_vel("cmd_vel" , velCallback);
-//nav_msgs::Odometry odomMsg;
-//ros::Publisher pub_odom("odom", &odomMsg);
-geometry_msgs::TransformStamped t;
-tf::TransformBroadcaster broadcaster;
+// nav_msgs::Odometry odomMsg;
+ros::Publisher pub_custom("CompressedMsg", &custom_msg);
 
 //=======================================================
 // ROBOT MOVEMENT
 void moveForward(float vel_x) {
   analogWrite(BRAKE_PIN, 0);
-  int duty = (vel_x) * ((DUTY_MAX - DUTY_MIN)/2) + DUTY_MIN;
+  leftReverse = false;
+  rightReverse = false;
+  digitalWrite(LEFT_REVERSE, LOW);
+  digitalWrite(RIGHT_REVERSE, LOW);
+  analogWrite(PWM_MOVE, DUTY_MIN);
+}
+
+void moveReverse(float vel_x) {
+  analogWrite(BRAKE_PIN, 0);
+  leftReverse = true;
+  rightReverse = true;
+  digitalWrite(LEFT_REVERSE, HIGH);
+  digitalWrite(RIGHT_REVERSE, HIGH);
   analogWrite(PWM_MOVE, DUTY_MIN);
 }
 
@@ -92,11 +108,15 @@ void moveTurn(float angle) {
   if (angle > 0) {
     //Turn Left
     leftReverse = true;
+    rightReverse = false;
     digitalWrite(LEFT_REVERSE, HIGH);
+    digitalWrite(RIGHT_REVERSE, LOW);
     analogWrite(PWM_MOVE, DUTY_MIN);
   } else if (angle < 0) {
     // Turn Right
+    leftReverse = false;
     rightReverse = true;
+    digitalWrite(LEFT_REVERSE, LOW);
     digitalWrite(RIGHT_REVERSE, HIGH);
     analogWrite(PWM_MOVE, DUTY_MIN);
   }
@@ -109,8 +129,15 @@ void moveStop() {
   rightReverse = false;
   digitalWrite(LEFT_REVERSE, LOW);
   digitalWrite(RIGHT_REVERSE, LOW);
-  analogWrite(BRAKE_PIN, BRAKE_DUTY);
+}
 
+void moveBrake(){
+  analogWrite(PWM_MOVE, 0);
+  analogWrite(BRAKE_PIN, BRAKE_DUTY);
+  leftReverse = false;
+  rightReverse = false;
+  digitalWrite(LEFT_REVERSE, LOW);
+  digitalWrite(RIGHT_REVERSE, LOW);
 }
 
 //=======================================================
@@ -120,9 +147,17 @@ void velCallback( const geometry_msgs::Twist& vel) {
   float vel_x = vel.linear.x; // Moving Forward Speed
   float ang_z = vel.angular.z; // Angle to Turn
   if (vel_x != 0) {
-    moveForward(vel_x);
+    
+    if (vel_x > 0){
+      moveForward(vel_x);
+    }else{
+      moveReverse(-vel_x);
+    }
+
   } else if (ang_z != 0) {
     moveTurn(ang_z);
+  } else if (vel_x == 0 && ang_z == 0){
+    moveBrake();
   }
 }
 
@@ -178,8 +213,8 @@ void setup() {
     // ROS
     robot.initNode();
     robot.subscribe(sub_cmd_vel);   //cmd_vel
-    broadcaster.init(robot);        //tf
-    //robot.advertise(pub_odom);      //odom
+    //broadcaster.init(robot);        //tf
+    robot.advertise(pub_custom);      //custom
   #endif
 
 }
@@ -215,7 +250,10 @@ void loop() {
   pollHallPins();
 
   // Publish Odometry
-  publishOdom();
+  //publishOdom();
+
+  publishMsg();
+
 }
 
 
@@ -252,7 +290,7 @@ void pollHallPins() {
   }
 }
 
-// Function turn param takes +1 or -1 depending on left wheel or right wheel poll
+// Function increments distance travelled by half a pulse for each from left wheel and right wheel poll
 void updateOdom() {
   // Moving Forward
   if (!leftReverse && !rightReverse) {
@@ -261,50 +299,61 @@ void updateOdom() {
     y = y + PULSE_INCREMENT*sin(theta);
   }
 }
+void publishMsg(){
+  ros::Time current_time = robot.now();
 
+  custom_msg.header.stamp = current_time;
+  custom_msg.x = x/1000;
+  custom_msg.y = y/1000;
+  custom_msg.theta = theta;
 
-void publishOdom() {
-  #ifdef DEBUG
-    Serial.print("x: ");
-    Serial.print(x);
-    Serial.print("   y: ");
-    Serial.print(y);
-    Serial.print("   theta: ");
-    Serial.println(theta);
-
-  #else
-    ros::Time current_time = robot.now();
-    geometry_msgs::Quaternion odom_quat = tf::createQuaternionFromYaw(theta);
-    
-    // Broadcast to tf
-    t.header.stamp = current_time;
-    t.header.frame_id = "odom";
-    t.child_frame_id = "chassis";
-
-    t.transform.translation.x = x/1000;
-    t.transform.translation.y = y/1000;
-
-    t.transform.rotation = odom_quat;
-
-    broadcaster.sendTransform(t);
-
-    /*
-    // Publish to odom
-    odomMsg.header.stamp = current_time;
-    odomMsg.header.frame_id = "odom";
-    odomMsg.child_frame_id = "chassis";
-
-    odomMsg.pose.pose.position.x = x/1000;
-    odomMsg.pose.pose.position.y = y/1000;
-    odomMsg.pose.pose.position.z = 0.0;
-    odomMsg.pose.pose.orientation = odom_quat;
-
-    odomMsg.twist.twist.linear.x = 0.1;
-    odomMsg.twist.twist.linear.y = -0.1;
-    odomMsg.twist.twist.angular.z = 0.1;
-
-    pub_odom.publish(&odomMsg);
-    */
-  #endif
+  pub_custom.publish(&custom_msg);
 
 }
+
+// void publishOdom() {
+//   #ifdef DEBUG
+//     Serial.print("x: ");
+//     Serial.print(x);
+//     Serial.print("   y: ");
+//     Serial.print(y);
+//     Serial.print("   theta: ");
+//     Serial.println(theta);
+
+//   #else
+//     ros::Time current_time = robot.now();
+//     geometry_msgs::Quaternion odom_quat = tf::createQuaternionFromYaw(theta);
+    
+//     // Broadcast to tf
+//     t.header.stamp = current_time;
+//     t.header.frame_id = "odom";
+//     t.child_frame_id = "chassis";
+
+//     t.transform.translation.x = x/1000;
+//     t.transform.translation.y = y/1000;
+
+//     t.transform.rotation = odom_quat;
+
+//     broadcaster.sendTransform(t);
+
+//     /*
+//     // Publish to odom
+//     odomMsg.header.stamp = current_time;
+//     odomMsg.header.frame_id = "odom";
+//     odomMsg.child_frame_id = "chassis";
+
+//     odomMsg.pose.pose.position.x = x/1000;
+//     odomMsg.pose.pose.position.y = y/1000;
+//     odomMsg.pose.pose.position.z = 0.0;
+//     odomMsg.pose.pose.orientation = odom_quat;
+
+//     odomMsg.twist.twist.linear.x = 0.1;
+//     odomMsg.twist.twist.linear.y = -0.1;
+//     odomMsg.twist.twist.angular.z = 0.1;
+
+//     pub_odom.publish(&odomMsg);
+//     */
+
+//   #endif
+
+// }
