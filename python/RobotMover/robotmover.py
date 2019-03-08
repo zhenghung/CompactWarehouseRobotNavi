@@ -43,10 +43,18 @@ class RobotMover:
         move_cmd.angular.z = 0.0
         cmd_vel.publish(move_cmd)
 
+    def stop(self):
+        cmd_vel = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
+        move_cmd = Twist()
+        cmd_vel.publish(move_cmd)
+
     def rotate_angle(self, angle):
         cmd_vel = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
         move_cmd = Twist()
-        move_cmd.angular.z = 1.0
+        if angle > 0:
+            move_cmd.angular.z = 1.0
+        elif angle < 0:
+            move_cmd.angular.z = -1.0
 
         cmd_vel.publish(move_cmd)
                         
@@ -60,10 +68,12 @@ class RobotMover:
 
         target_radians = angle * math.pi/180
         target = _convert_within_2pi(self.robotpose.positionPitch + target_radians)
+        print target_radians, target
         theta = self.robotpose.positionPitch
-
+        
         while (abs(_convert_within_2pi(theta - target)) > 0.1):
             theta = self.robotpose.positionPitch
+            print "Current Angle", theta
 
         move_cmd.angular.z = 0.0
         cmd_vel.publish(move_cmd)
@@ -88,6 +98,8 @@ if __name__ == '__main__':
             mover.rotate_left(float(dur))
         elif cmd == 'd':
             mover.rotate_right(float(dur))
+        elif cmd == 's':
+            mover.stop()
         elif cmd == 'x':
             mover.rotate_angle((float(dur)))
 

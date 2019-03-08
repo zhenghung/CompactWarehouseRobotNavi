@@ -13,7 +13,7 @@ global x,y
 
 def listener():
         rospy.init_node('RepublishOdom', anonymous=False)
-        rospy.Subscriber("imu_read", imu_read, msgCallback)
+        rospy.Subscriber("CompressedMsg", imu_read, msgCallback)
         while not rospy.is_shutdown():
 		rospy.spin()      	
 

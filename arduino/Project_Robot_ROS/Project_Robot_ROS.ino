@@ -3,9 +3,9 @@
 //#define DEBUG
 
 // PINS
-#define PWM_MOVE 5
-#define LEFT_HALL_IN A2
-#define RIGHT_HALL_IN A2
+#define PWM_MOVE 6
+#define LEFT_HALL_IN A8
+#define RIGHT_HALL_IN A9
 #define LEFT_REVERSE 2
 #define RIGHT_REVERSE 3
 #define BRAKE_PIN 11
@@ -19,7 +19,7 @@
 #define LEFT_HALL_THRESH 100
 #define RIGHT_HALL_THRESH 100
 #define DUTY_MAX 105
-#define DUTY_MIN 100
+#define DUTY_MIN 102
 #define BRAKE_DUTY 220
 
 // PHYSICS CONSTANTS
@@ -87,7 +87,19 @@ ros::Publisher pub_custom("CompressedMsg", &custom_msg);
 // ROBOT MOVEMENT
 void moveForward(float vel_x) {
   analogWrite(BRAKE_PIN, 0);
-  int duty = (vel_x) * ((DUTY_MAX - DUTY_MIN)/2) + DUTY_MIN;
+  leftReverse = false;
+  rightReverse = false;
+  digitalWrite(LEFT_REVERSE, LOW);
+  digitalWrite(RIGHT_REVERSE, LOW);
+  analogWrite(PWM_MOVE, DUTY_MIN);
+}
+
+void moveReverse(float vel_x) {
+  analogWrite(BRAKE_PIN, 0);
+  leftReverse = true;
+  rightReverse = true;
+  digitalWrite(LEFT_REVERSE, HIGH);
+  digitalWrite(RIGHT_REVERSE, HIGH);
   analogWrite(PWM_MOVE, DUTY_MIN);
 }
 
@@ -96,11 +108,15 @@ void moveTurn(float angle) {
   if (angle > 0) {
     //Turn Left
     leftReverse = true;
+    rightReverse = false;
     digitalWrite(LEFT_REVERSE, HIGH);
+    digitalWrite(RIGHT_REVERSE, LOW);
     analogWrite(PWM_MOVE, DUTY_MIN);
   } else if (angle < 0) {
     // Turn Right
+    leftReverse = false;
     rightReverse = true;
+    digitalWrite(LEFT_REVERSE, LOW);
     digitalWrite(RIGHT_REVERSE, HIGH);
     analogWrite(PWM_MOVE, DUTY_MIN);
   }
@@ -113,21 +129,35 @@ void moveStop() {
   rightReverse = false;
   digitalWrite(LEFT_REVERSE, LOW);
   digitalWrite(RIGHT_REVERSE, LOW);
-  analogWrite(BRAKE_PIN, BRAKE_DUTY);
+}
 
+void moveBrake(){
+  analogWrite(PWM_MOVE, 0);
+  analogWrite(BRAKE_PIN, BRAKE_DUTY);
+  leftReverse = false;
+  rightReverse = false;
+  digitalWrite(LEFT_REVERSE, LOW);
+  digitalWrite(RIGHT_REVERSE, LOW);
 }
 
 //=======================================================
 // Subscriber Callback Function
 void velCallback( const geometry_msgs::Twist& vel) {
+  moveStop();
   float vel_x = vel.linear.x; // Moving Forward Speed
   float ang_z = vel.angular.z; // Angle to Turn
   if (vel_x != 0) {
-    moveForward(vel_x);
+    
+    if (vel_x > 0){
+      moveForward(vel_x);
+    }else{
+      moveReverse(-vel_x);
+    }
+
   } else if (ang_z != 0) {
     moveTurn(ang_z);
-  } else {
-    moveStop();
+  } else if (vel_x == 0 && ang_z == 0){
+    moveBrake();
   }
 }
 
