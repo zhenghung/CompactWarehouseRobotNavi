@@ -4,12 +4,12 @@ The following documentation outlines the steps required to run the CompactWareho
 
 # Contents
 
-- Clone Repository
-- Project structure
-- Installation and Setup
-- Running the Program
-    - Running and controlling robot manually
-    - Running robot with navigation
+- [Clone Repository](https://github.com/zhenghung/CompactWarehouseRobotNavi#clone-repository)
+- [Project structure](https://github.com/zhenghung/CompactWarehouseRobotNavi#project-structure)
+- [Installation and Setup](https://github.com/zhenghung/CompactWarehouseRobotNavi#installation-and-setup)
+- [Running the Program](https://github.com/zhenghung/CompactWarehouseRobotNavi#running-the-program)
+    - [Running and controlling robot manually](https://github.com/zhenghung/CompactWarehouseRobotNavi#running-and-controlling-robot-manually)
+    - [Running robot with navigation](https://github.com/zhenghung/CompactWarehouseRobotNavi#running-the-robot-with-navigation)
 - FAQ / Troubleshooting
 
 
@@ -67,7 +67,7 @@ $ echo "export ROS_MASTER_URI=http://<ROS Master IP>:11311" >> ~/.bashrc
 
 **Note that your local IP changes based on the network your computer is connected to, so edit the ~/.bashrc file as needed, then source the file**
 
-
+# Running the Program
 # Running and controlling robot manually
 ## Terminal 1 - Server Device
 Start ROS Master.
