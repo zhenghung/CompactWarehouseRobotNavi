@@ -124,7 +124,6 @@ void moveTurn(float angle) {
 
 void moveStop() {
   analogWrite(PWM_MOVE, 0);
-  delay(50);
   leftReverse = false;
   rightReverse = false;
   digitalWrite(LEFT_REVERSE, LOW);
