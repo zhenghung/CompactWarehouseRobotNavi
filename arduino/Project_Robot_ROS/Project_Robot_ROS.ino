@@ -296,6 +296,10 @@ void updateOdom() {
     // Moving Forward by one pulse
     x = x + PULSE_INCREMENT*cos(theta);
     y = y + PULSE_INCREMENT*sin(theta);
+  } else if (leftReverse && rightReverse) {
+    // Moving Backwards by one pulse
+    x = x - PULSE_INCREMENT*cos(theta);
+    y = y - PULSE_INCREMENT*sin(theta);
   }
 }
 void publishMsg(){
