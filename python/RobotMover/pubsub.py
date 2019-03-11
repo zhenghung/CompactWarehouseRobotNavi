@@ -2,9 +2,11 @@
 import roslib; roslib.load_manifest('imu_read')
 import rospy
 import tf
+import math
 from tf.transformations import quaternion_from_euler
 from imu_read.msg import imu_read
 from nav_msgs.msg import Odometry
+from sensor_msgs.msg import Imu
 
 # Odomerty publisher
 
@@ -12,7 +14,7 @@ global x,y
 
 
 def listener():
-        rospy.init_node('RepublishOdom', anonymous=False)
+        rospy.init_node('Republiser', anonymous=False)
         rospy.Subscriber("CompressedMsg", imu_read, msgCallback)
         while not rospy.is_shutdown():
 		rospy.spin()      	
@@ -44,23 +46,25 @@ def odom_publish(x,y,t):
         odomMsg.pose.pose.orientation.w = quat[3]
 
         odomMsg.twist.twist.linear.x = 0.1
-        odomMsg.twist.twist.linear.y = -0.1
+        odomMsg.twist.twist.linear.y = 0
         odomMsg.twist.twist.angular.z = 0.1
 
 	odom.publish(odomMsg)   
 
-def tf_publish(x,y,t): 	
-        odom_broadcaster = tf.TransformBroadcaster()
-        odom_broadcaster.sendTransform(
-        	(x/1000, y/1000, 0.),
-        	tf.transformations.quaternion_from_euler(0, 0, t),
-        	rospy.Time.now(),
-        	"chassis",
-        	"odom")   
-
 def imu_publish(x,y,t): 	
 	imu = rospy.Publisher("/Imu", Imu, queue_size=1)
-        imu.publish()   
+        imuMsg = Imu()
+	
+        imuMsg.header.stamp = rospy.get_rostime()
+	imuMsg.orientation_covariance[0] = -1;
+	imuMsg.angular_velocity.x = math.radians(gx);
+	imuMsg.angular_velocity.y = math.radians(gy);
+	imuMsg.angular_velocity.z = math.radians(gz);
+	imuMsg.linear_acceleration.x = ax*9.81;
+	imuMsg.linear_acceleration.y = ay*9.81;
+	imuMsg.linear_acceleration.z = az*9.81;
+
+        imu.publish(imuMsg)      
 
 if __name__ == '__main__':
 	listener()

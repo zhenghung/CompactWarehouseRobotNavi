@@ -23,6 +23,7 @@
 #define BRAKE_DUTY 220
 #define MAG_X_OFFSET -700 
 #define MAG_Y_OFFSET -400
+#define MAG_Z_OFFSET 1000
 
 // PHYSICS CONSTANTS
 #define WHEEL_CIRCUMFERENCE 518.36
@@ -239,7 +240,7 @@ void setup() {
   #else
     // ROS
     robot.initNode();
-    robot.subscribe(sub_cmd_vel);   //cmd_vel
+    robot.subscribe(sub_cmd_vel);     //cmd_vel
     //broadcaster.init(robot);        //tf
     robot.advertise(pub_custom);      //custom
   #endif
@@ -256,10 +257,16 @@ void loop() {
           moveForward(0.1);
           break;
         case 'a':
-          moveTurn(1);
+          moveTurn(0.1);
+          break;
+        case 's':
+          moveBrake();
           break;
         case 'd':
-          moveTurn(-1);
+          moveTurn(-0.1);
+          break;
+        case 'x':
+          moveReverse(-0.1);
           break;
         default:
           moveStop();
@@ -277,8 +284,6 @@ void loop() {
   pollHallPins();
 
   // Publish Odometry
-  //publishOdom();
-
   publishMsg();
 
 }
@@ -331,15 +336,38 @@ void updateOdom() {
   }
 }
 void publishMsg(){
-  ros::Time current_time = robot.now();
+  #ifdef DEBUG
 
-  custom_msg.header.stamp = current_time;
-  custom_msg.x = x/1000;
-  custom_msg.y = y/1000;
-  custom_msg.theta = theta;
+    Serial.print("x: ");
+    Serial.print(x);
+    Serial.print("   y: ");
+    Serial.print(y);
+    Serial.print("   theta: ");
+    Serial.println(theta);
 
-  pub_custom.publish(&custom_msg);
+  #else
 
+    // Get IMU Values
+
+    ros::Time current_time = robot.now();
+
+    custom_msg.header.stamp = current_time;
+    custom_msg.x = x/1000;
+    custom_msg.y = y/1000;
+    custom_msg.theta = theta;
+    custom_msg.gx = imu.calcGyro(imu.gy);
+    custom_msg.gy = -imu.calcGyro(imu.gx);
+    custom_msg.gz = -imu.calcGyro(imu.gz);
+    custom_msg.mx = imu.calcMag(imu.my + MAG_Y_OFFSET);
+    custom_msg.my = -imu.calcMag(imu.mx + MAG_X_OFFSET);
+    custom_msg.mz = -imu.calcMag(imu.mz + MAG_Z_OFFSET);
+    custom_msg.ax = imu.calcAccel(imu.ay);
+    custom_msg.ay = -imu.calcAccel(imu.ax);
+    custom_msg.az = -imu.calcAccel(imu.az);
+
+    pub_custom.publish(&custom_msg);
+
+  #endif
 }
 
 // void publishOdom() {
