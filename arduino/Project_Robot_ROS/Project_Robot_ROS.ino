@@ -19,7 +19,7 @@
 #define LEFT_HALL_THRESH 100
 #define RIGHT_HALL_THRESH 100
 #define DUTY_MAX 105
-#define DUTY_MIN 102
+#define DUTY_MIN 100
 #define BRAKE_DUTY 220
 
 // PHYSICS CONSTANTS
@@ -83,9 +83,14 @@ ros::Subscriber<geometry_msgs::Twist> sub_cmd_vel("cmd_vel" , velCallback);
 // nav_msgs::Odometry odomMsg;
 ros::Publisher pub_custom("CompressedMsg", &custom_msg);
 
+boolean turning = false;
+boolean fwdOrBack = false;
+
 //=======================================================
 // ROBOT MOVEMENT
 void moveForward(float vel_x) {
+  turning = false;
+  fwdOrBack = true;
   analogWrite(BRAKE_PIN, 0);
   leftReverse = false;
   rightReverse = false;
@@ -95,6 +100,8 @@ void moveForward(float vel_x) {
 }
 
 void moveReverse(float vel_x) {
+  turning = false; 
+  fwdOrBack = true;
   analogWrite(BRAKE_PIN, 0);
   leftReverse = true;
   rightReverse = true;
@@ -104,6 +111,8 @@ void moveReverse(float vel_x) {
 }
 
 void moveTurn(float angle) {
+  turning = true;
+  fwdOrBack = false;
   analogWrite(BRAKE_PIN, 0);
   if (angle > 0) {
     //Turn Left
@@ -131,6 +140,8 @@ void moveStop() {
 }
 
 void moveBrake(){
+  turning = false;
+  fwdOrBack = false;
   analogWrite(PWM_MOVE, 0);
   analogWrite(BRAKE_PIN, BRAKE_DUTY);
   leftReverse = false;
@@ -145,16 +156,30 @@ void velCallback( const geometry_msgs::Twist& vel) {
   moveStop();
   float vel_x = vel.linear.x; // Moving Forward Speed
   float ang_z = vel.angular.z; // Angle to Turn
-  if (vel_x != 0) {
-    
-    if (vel_x > 0){
-      moveForward(vel_x);
-    }else{
-      moveReverse(-vel_x);
+
+  if (abs(vel_x) > abs(ang_z)) {
+    ang_z = 0;
+  } else if (abs(vel_x) < abs(ang_z)) {
+    vel_x = 0;
+  }
+
+  if (ang_z != 0) {
+    if (fwdOrBack){
+      moveBrake();
+    } else {
+      moveTurn(ang_z);
+    }
+  } else if (vel_x != 0) {
+    if (turning) {
+      moveBrake();
+    } else {
+      if (vel_x > 0){
+        moveForward(vel_x);
+      }else{
+        moveReverse(-vel_x);
+      }
     }
 
-  } else if (ang_z != 0) {
-    moveTurn(ang_z);
   } else if (vel_x == 0 && ang_z == 0){
     moveBrake();
   }
