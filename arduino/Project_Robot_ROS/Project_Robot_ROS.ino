@@ -21,6 +21,8 @@
 #define DUTY_MAX 105
 #define DUTY_MIN 100
 #define BRAKE_DUTY 220
+#define MAG_X_OFFSET -700 
+#define MAG_Y_OFFSET -400
 
 // PHYSICS CONSTANTS
 #define WHEEL_CIRCUMFERENCE 518.36
@@ -60,8 +62,8 @@ volatile float x = 0;
 volatile float y = 0;
 volatile float theta = 0;
 volatile float headingOffset = 0;
-bool leftReverse = false;
-bool rightReverse = false;
+bool leftReverse = false;     // State of the left relay
+bool rightReverse = false;    // State of the right relay
 
 // Functions
 void moveForward();
@@ -73,6 +75,10 @@ void pollHallPins();
 void updateOdom();
 void publishOdom();
 
+// Robot Control
+boolean turning = false;    // Rotating
+boolean fwdOrBack = false;  // Moving Forward or in Reverse
+
 // ROS Messages
 // geometry_msgs::TransformStamped t;
 // tf::TransformBroadcaster broadcaster;
@@ -82,9 +88,6 @@ imu_read::imu_read custom_msg;
 ros::Subscriber<geometry_msgs::Twist> sub_cmd_vel("cmd_vel" , velCallback);
 // nav_msgs::Odometry odomMsg;
 ros::Publisher pub_custom("CompressedMsg", &custom_msg);
-
-boolean turning = false;
-boolean fwdOrBack = false;
 
 //=======================================================
 // ROBOT MOVEMENT
@@ -200,7 +203,7 @@ float getHeading(float offset){
   // Ym_cal =  0.001908*Xm_off + 0.018923*Ym_off - 0.000177*Zm_off - 42; //Y-axis correction for combined scale factors
   // Zm_cal =  0.000262*Xm_off - 0.000177*Ym_off + 0.018239*Zm_off; //Z-axis correction for combined scale factors
 
-  heading = atan2(imu.my-1000, imu.mx-100);  
+  heading = atan2(imu.my + MAG_Y_OFFSET, imu.mx + MAG_X_OFFSET);  
   heading -= offset;
 
   if (heading > PI) {
