@@ -45,7 +45,7 @@ if __name__ == '__main__':
     mover.move_forward()   # Bug: First publish doesnt work
 
     cmd = None
-    while cmd != ['q']:
+    while cmd != 'q':
         print "[cmd]: ",
         cmd = raw_input()
 
