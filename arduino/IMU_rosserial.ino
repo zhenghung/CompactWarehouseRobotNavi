@@ -37,7 +37,7 @@ void setup()
 
   if (!imu.begin())
   {
-    Serial.println("Failed to communicate with IMU. Check wiring.");
+    Serial.println("Failed to communicate");
     while(1);
   }
   nh.initNode();
@@ -61,15 +61,15 @@ void loop()
   }
   if ((lastPrint + PRINT_SPEED) < millis())
   {    
-  imu_msg.gx = imu.calcGyro(imu.gx);
-  imu_msg.gy = imu.calcGyro(imu.gy);
-  imu_msg.gz = imu.calcGyro(imu.gz);
-  imu_msg.mx = imu.calcMag(imu.mx);
-  imu_msg.my = imu.calcMag(imu.my);
-  imu_msg.mz = imu.calcMag(imu.mz);
-  imu_msg.ax = imu.calcAccel(imu.ax);
-  imu_msg.ay = imu.calcAccel(imu.ay);
-  imu_msg.az = imu.calcAccel(imu.az);
+  imu_msg.gx = imu.calcGyro(imu.gy);
+  imu_msg.gy = -imu.calcGyro(imu.gx);
+  imu_msg.gz = -imu.calcGyro(imu.gz);
+  imu_msg.mx = imu.calcMag(imu.my);
+  imu_msg.my = -imu.calcMag(imu.mx);
+  imu_msg.mz = -imu.calcMag(imu.mz);
+  imu_msg.ax = imu.calcAccel(imu.ay);
+  imu_msg.ay = -imu.calcAccel(imu.ax);
+  imu_msg.az = -imu.calcAccel(imu.az);
   
   p.publish( &imu_msg );
   lastPrint = millis(); // Update lastPrint time
