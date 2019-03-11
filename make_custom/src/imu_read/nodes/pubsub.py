@@ -17,9 +17,13 @@ def listener():
 		rospy.spin()      	
 
 def msgCallback(msg):
-	x,y,t = msg.x, msg.y, msg.theta
+	x,y,t,gx,gy,gz,ax,ay,az,mx,my,mz = msg.x, msg.y, msg.theta, 
+                                          msg.gx, msg.gy, msg.gz,
+                                          msg.ax, msg.ay, msg.az,
+                                          msg.mx, msg.my, msg.mz
 	odom_publish(x,y)
         tf_publish(x,y,t)
+        imu_publish(gx,gy,gz,ax,ay,az)
         rospy.loginfo(rospy.get_name()+"(%.3f)"%(x))
 
 def odom_publish(x,y):
@@ -47,6 +51,31 @@ def odom_publish(x,y):
 
 def tf_publish(x,y,t): 	
         odom_broadcaster = tf.TransformBroadcaster()
+        odom_broadcaster.sendTransform(
+        	(x/1000, y/1000, 0.),
+        	tf.transformations.quaternion_from_euler(0, 0, t),
+        	rospy.Time.now(),
+        	"chassis",
+        	"odom")   
+
+def imu_publish(gx,gy,gz,ax,ay,az): 	
+	imu = rospy.Publisher("/Imu", Imu, queue_size=1)
+	float angvel_conversion = 3.1415/180.0;
+	float linacc_conversion = 9.8;
+	
+	imu_msg.orientation_covariance[0] = -1;
+	imu_msg.angular_velocity.x = gx*angvel_conversion;
+	imu_msg.angular_velocity.y = gy*angvel_conversion;
+	imu_msg.angular_velocity.z = gz*angvel_conversion;
+	imu_msg.linear_acceleration.x = ax*linacc_conversion;
+	imu_msg.linear_acceleration.y = ay*linacc_conversion;
+	imu_msg.linear_acceleration.z = az*linacc_conversion;
+
+        imu.publish()   
+
+if __name__ == '__main__':
+	listener()
+
         odom_broadcaster.sendTransform(
         	(x/1000, y/1000, 0.),
         	tf.transformations.quaternion_from_euler(0, 0, t),
