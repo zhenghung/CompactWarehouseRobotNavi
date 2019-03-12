@@ -10,9 +10,6 @@ from sensor_msgs.msg import Imu
 
 # Odomerty publisher
 
-global x,y
-
-
 def listener():
         rospy.init_node('Republiser', anonymous=False)
         rospy.Subscriber("CompressedMsg", imu_read, msgCallback)
