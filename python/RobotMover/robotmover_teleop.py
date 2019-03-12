@@ -2,7 +2,7 @@
 import pygame
 import sys
 import os
-# from robotmover_manual import RobotMover
+from robotmover_manual import RobotMover
 
 
 
