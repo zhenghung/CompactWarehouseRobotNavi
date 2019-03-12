@@ -348,7 +348,9 @@ void publishMsg(){
   #else
 
     // Get IMU Values
-
+    imu.readGyro();
+    imu.readAccel();
+    
     ros::Time current_time = robot.now();
 
     custom_msg.header.stamp = current_time;
