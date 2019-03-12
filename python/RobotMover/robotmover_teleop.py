@@ -2,7 +2,7 @@
 import pygame
 import sys
 import os
-from robotmover_manual import RobotMover
+# from robotmover_manual import RobotMover
 
 
 
@@ -19,7 +19,7 @@ if __name__ == "__main__":
 
     world = pygame.display.set_mode([width,height])
 
-    backdrop = pygame.image.load('/home/zhenghung/CompactWarehouseRobotNavi/python/RobotMover/robotgui.png').convert()
+    backdrop = pygame.image.load(os.path.join(os.path.dirname(os.path.realpath(__file__)),'gui_images','robotgui.png')).convert()
     backdropbox = world.get_rect()
     world.blit(backdrop, backdropbox)
 
