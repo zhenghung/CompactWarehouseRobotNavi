@@ -10,6 +10,8 @@ IMG_LEFT = os.path.join(os.path.dirname(os.path.realpath(__file__)),'gui_images'
 IMG_RIGHT = os.path.join(os.path.dirname(os.path.realpath(__file__)),'gui_images','right.png')
 IMG_REV = os.path.join(os.path.dirname(os.path.realpath(__file__)),'gui_images','rev.png')
 
+clock = pygame.time.Clock()
+
 if __name__ == "__main__":
     mover = RobotMover()
     mover.move_forward()   # Bug: First publish doesnt work
@@ -28,6 +30,7 @@ if __name__ == "__main__":
     world.blit(backdrop, backdropbox)
 
     while main:
+        clock.tick(15)
         world.blit(backdrop, backdropbox)
         pygame.display.flip()
         for event in pygame.event.get():
