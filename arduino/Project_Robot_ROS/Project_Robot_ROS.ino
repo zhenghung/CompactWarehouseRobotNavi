@@ -24,8 +24,7 @@
 #define MAG_X_OFFSET -900 
 #define MAG_Y_OFFSET -300
 #define MAG_Z_OFFSET 1100
-#define MAX_VEL_X 0.1
-#define MAX_ANG_Z 0.9
+#define ANG_THRESH 0.4
 
 // PHYSICS CONSTANTS
 #define WHEEL_CIRCUMFERENCE 518.36
@@ -163,12 +162,14 @@ void velCallback( const geometry_msgs::Twist& vel) {
   float vel_x = vel.linear.x; // Moving Forward Speed
   float ang_z = vel.angular.z; // Angle to Turn
 
-  if (abs(vel_x)/MAX_VEL_X > abs(ang_z)/MAX_ANG_Z) {
+//  if (abs(vel_x)/MAX_VEL_X > abs(ang_z)/MAX_ANG_Z) {
+//    ang_z = 0;
+//  } else if (abs(vel_x) < abs(ang_z)) {
+//    vel_x = 0;
+//  }
+  if (vel_x != 0 && abs(ang_z) <= ANG_THRESH){
     ang_z = 0;
-  } else if (abs(vel_x) < abs(ang_z)) {
-    vel_x = 0;
   }
-
   if (ang_z != 0) {
     if (fwdOrBack){
       moveBrake();
@@ -189,6 +190,7 @@ void velCallback( const geometry_msgs::Twist& vel) {
   } else if (vel_x == 0 && ang_z == 0){
     moveBrake();
   }
+  robot.spinOnce();
 }
 
 //=======================================================
@@ -278,6 +280,7 @@ void loop() {
 
   // Publish Odometry
   publishMsg();
+  robot.spinOnce();
 
 }
 
