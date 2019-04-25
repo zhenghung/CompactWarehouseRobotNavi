@@ -18,8 +18,8 @@
 // CONSTANTS
 #define LEFT_HALL_THRESH 100
 #define RIGHT_HALL_THRESH 100
-#define DUTY_MAX 105
-#define DUTY_MIN 105
+#define DUTY_MAX 106
+#define DUTY_MIN 106
 #define BRAKE_DUTY 255
 #define MAG_X_OFFSET -900 
 #define MAG_Y_OFFSET -300
@@ -91,11 +91,14 @@ ros::Subscriber<geometry_msgs::Twist> sub_cmd_vel("cmd_vel" , velCallback);
 // nav_msgs::Odometry odomMsg;
 ros::Publisher pub_custom("CompressedMsg", &custom_msg);
 
+unsigned long last_stamp;
+
 //=======================================================
 // ROBOT MOVEMENT
 void moveForward(float vel_x) {
   turning = false;
   fwdOrBack = true;
+  last_stamp = millis();
   analogWrite(BRAKE_PIN, 0);
   leftReverse = false;
   rightReverse = false;
@@ -107,6 +110,8 @@ void moveForward(float vel_x) {
 void moveReverse(float vel_x) {
   turning = false; 
   fwdOrBack = true;
+  last_stamp = millis();
+
   analogWrite(BRAKE_PIN, 0);
   leftReverse = true;
   rightReverse = true;
@@ -118,6 +123,8 @@ void moveReverse(float vel_x) {
 void moveTurn(float angle) {
   turning = true;
   fwdOrBack = false;
+  last_stamp = millis();
+
   analogWrite(BRAKE_PIN, 0);
   if (angle > 0) {
     //Turn Left
@@ -171,14 +178,16 @@ void velCallback( const geometry_msgs::Twist& vel) {
     ang_z = 0;
   }
   if (ang_z != 0) {
-    if (fwdOrBack){
+    if (fwdOrBack && (abs(millis()-last_stamp)<1000)){
       moveBrake();
+      fwdOrBack = true;
     } else {
       moveTurn(ang_z);
     }
   } else if (vel_x != 0) {
-    if (turning) {
+    if (turning && (abs(millis()-last_stamp)<1000)) {
       moveBrake();
+      turning = true;
     } else {
       if (vel_x > 0){
         moveForward(vel_x);
