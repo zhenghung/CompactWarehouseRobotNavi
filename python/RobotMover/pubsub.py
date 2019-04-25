@@ -11,10 +11,14 @@ from sensor_msgs.msg import Imu
 # Odomerty publisher
 
 def listener():
-        rospy.init_node('Republiser', anonymous=False)
+        rospy.init_node('Republisher', anonymous=False)
         rospy.Subscriber("CompressedMsg", imu_read, msgCallback)
+        rospy.Subscriber("/imu/data", Imu, ImuCallback)
         while not rospy.is_shutdown():
 		rospy.spin()      	
+
+def ImuCallback(msg):
+	print ("F")
 
 def msgCallback(msg):
 	x,y,t = msg.x, msg.y, msg.theta

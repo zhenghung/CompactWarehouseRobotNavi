@@ -142,8 +142,8 @@ void setup()
   imu.settings.device.mAddress = LSM9DS1_M;
   imu.settings.device.agAddress = LSM9DS1_AG;
 
-//  imu.calibrateMag(true);
-//  imu.calibrate(true);
+//  imu.calibrateMag(false);
+//  imu.calibrate(false);
   // The above lines will only take effect AFTER calling
   // imu.begin(), which verifies communication with the IMU
   // and turns it on.
@@ -199,14 +199,14 @@ void loop()
   
 
   
-  Serial.print(imu.mx - 700); 
+  Serial.print(imu.mx-900); 
   Serial.print(",");
-  Serial.print(imu.my - 400);
+  Serial.print(imu.my-300);
   Serial.print(",");
-  Serial.println(imu.mz + 1000);
+  Serial.println(imu.mz + 1100);
   
   //printAttitude(imu.mx - 700, imu.my - 400, imu.mz);
-  delay(100);
+  delay(50);
 }
 void getHeading()
 { 

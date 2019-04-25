@@ -18,12 +18,13 @@
 // CONSTANTS
 #define LEFT_HALL_THRESH 100
 #define RIGHT_HALL_THRESH 100
-#define DUTY_MAX 105
-#define DUTY_MIN 100
-#define BRAKE_DUTY 220
-#define MAG_X_OFFSET -700 
-#define MAG_Y_OFFSET -400
-#define MAG_Z_OFFSET 1000
+#define DUTY_MAX 106
+#define DUTY_MIN 106
+#define BRAKE_DUTY 255
+#define MAG_X_OFFSET -900 
+#define MAG_Y_OFFSET -300
+#define MAG_Z_OFFSET 1100
+#define ANG_THRESH 0.4
 
 // PHYSICS CONSTANTS
 #define WHEEL_CIRCUMFERENCE 518.36
@@ -74,7 +75,7 @@ void velCallback( const geometry_msgs::Twist& vel);
 float getHeading(float offset);
 void pollHallPins();
 void updateOdom();
-void publishOdom();
+void publishMsg();
 
 // Robot Control
 boolean turning = false;    // Rotating
@@ -90,11 +91,14 @@ ros::Subscriber<geometry_msgs::Twist> sub_cmd_vel("cmd_vel" , velCallback);
 // nav_msgs::Odometry odomMsg;
 ros::Publisher pub_custom("CompressedMsg", &custom_msg);
 
+unsigned long last_stamp;
+
 //=======================================================
 // ROBOT MOVEMENT
 void moveForward(float vel_x) {
   turning = false;
   fwdOrBack = true;
+  last_stamp = millis();
   analogWrite(BRAKE_PIN, 0);
   leftReverse = false;
   rightReverse = false;
@@ -106,6 +110,8 @@ void moveForward(float vel_x) {
 void moveReverse(float vel_x) {
   turning = false; 
   fwdOrBack = true;
+  last_stamp = millis();
+
   analogWrite(BRAKE_PIN, 0);
   leftReverse = true;
   rightReverse = true;
@@ -117,6 +123,8 @@ void moveReverse(float vel_x) {
 void moveTurn(float angle) {
   turning = true;
   fwdOrBack = false;
+  last_stamp = millis();
+
   analogWrite(BRAKE_PIN, 0);
   if (angle > 0) {
     //Turn Left
@@ -124,14 +132,14 @@ void moveTurn(float angle) {
     rightReverse = false;
     digitalWrite(LEFT_REVERSE, HIGH);
     digitalWrite(RIGHT_REVERSE, LOW);
-    analogWrite(PWM_MOVE, DUTY_MIN);
+    analogWrite(PWM_MOVE, DUTY_MIN-1);
   } else if (angle < 0) {
     // Turn Right
     leftReverse = false;
     rightReverse = true;
     digitalWrite(LEFT_REVERSE, LOW);
     digitalWrite(RIGHT_REVERSE, HIGH);
-    analogWrite(PWM_MOVE, DUTY_MIN);
+    analogWrite(PWM_MOVE, DUTY_MIN-2);
   }
 }
 
@@ -161,21 +169,25 @@ void velCallback( const geometry_msgs::Twist& vel) {
   float vel_x = vel.linear.x; // Moving Forward Speed
   float ang_z = vel.angular.z; // Angle to Turn
 
-  if (abs(vel_x) > abs(ang_z)) {
+//  if (abs(vel_x)/MAX_VEL_X > abs(ang_z)/MAX_ANG_Z) {
+//    ang_z = 0;
+//  } else if (abs(vel_x) < abs(ang_z)) {
+//    vel_x = 0;
+//  }
+  if (vel_x != 0 && abs(ang_z) <= ANG_THRESH){
     ang_z = 0;
-  } else if (abs(vel_x) < abs(ang_z)) {
-    vel_x = 0;
   }
-
   if (ang_z != 0) {
-    if (fwdOrBack){
+    if (fwdOrBack && (abs(millis()-last_stamp)<1000)){
       moveBrake();
+      fwdOrBack = true;
     } else {
       moveTurn(ang_z);
     }
   } else if (vel_x != 0) {
-    if (turning) {
+    if (turning && (abs(millis()-last_stamp)<1000)) {
       moveBrake();
+      turning = true;
     } else {
       if (vel_x > 0){
         moveForward(vel_x);
@@ -187,23 +199,15 @@ void velCallback( const geometry_msgs::Twist& vel) {
   } else if (vel_x == 0 && ang_z == 0){
     moveBrake();
   }
+  robot.spinOnce();
 }
 
 //=======================================================
 // IMU
 float getHeading(float offset){
-  imu.readMag();
+  // imu.readMag();
   
   float heading;
-  // float Xm_off, Ym_off, Zm_off, Xm_cal, Ym_cal, Zm_cal;
-  // Xm_off = imu.mx + 306.203686; //X-axis combined bias (Non calibrated data - bias)
-  // Ym_off = imu.my + 1232.855613; //Y-axis combined bias (Default: substracting bias)
-  // Zm_off = imu.mz - 695.984327; //Z-axis combined bias
-
-  // Xm_cal =  0.018511*Xm_off + 0.001908*Ym_off + 0.000262*Zm_off - 16; //X-axis correction for combined scale factors (Default: positive factors)
-  // Ym_cal =  0.001908*Xm_off + 0.018923*Ym_off - 0.000177*Zm_off - 42; //Y-axis correction for combined scale factors
-  // Zm_cal =  0.000262*Xm_off - 0.000177*Ym_off + 0.018239*Zm_off; //Z-axis correction for combined scale factors
-
   heading = atan2(imu.my + MAG_Y_OFFSET, imu.mx + MAG_X_OFFSET);  
   heading -= offset;
 
@@ -229,11 +233,11 @@ void setup() {
   moveStop();
 
   // Setup IMU
-  imu.settings.device.commInterface = IMU_MODE_I2C;
-  imu.settings.device.mAddress = LSM9DS1_M;
-  imu.settings.device.agAddress = LSM9DS1_AG;
-  imu.begin();
-  headingOffset = getHeading(0);
+  // imu.settings.device.commInterface = IMU_MODE_I2C;
+  // imu.settings.device.mAddress = LSM9DS1_M;
+  // imu.settings.device.agAddress = LSM9DS1_AG;
+  // imu.begin();
+  // headingOffset = getHeading(0);
 
   #ifdef DEBUG
     Serial.begin(9600);
@@ -278,13 +282,14 @@ void loop() {
     robot.spinOnce();
   #endif
 
-  theta = getHeading(headingOffset);
+  // theta = getHeading(headingOffset);
   
   // Check Hall pins of both wheels for Rising Edge
   pollHallPins();
 
   // Publish Odometry
   publishMsg();
+  robot.spinOnce();
 
 }
 
@@ -348,22 +353,24 @@ void publishMsg(){
   #else
 
     // Get IMU Values
-
+    // imu.readGyro();
+    // imu.readAccel();
+    
     ros::Time current_time = robot.now();
 
     custom_msg.header.stamp = current_time;
     custom_msg.x = x/1000;
     custom_msg.y = y/1000;
     custom_msg.theta = theta;
-    custom_msg.gx = imu.calcGyro(imu.gy);
-    custom_msg.gy = -imu.calcGyro(imu.gx);
-    custom_msg.gz = -imu.calcGyro(imu.gz);
-    custom_msg.mx = imu.calcMag(imu.my + MAG_Y_OFFSET);
-    custom_msg.my = -imu.calcMag(imu.mx + MAG_X_OFFSET);
-    custom_msg.mz = -imu.calcMag(imu.mz + MAG_Z_OFFSET);
-    custom_msg.ax = imu.calcAccel(imu.ay);
-    custom_msg.ay = -imu.calcAccel(imu.ax);
-    custom_msg.az = -imu.calcAccel(imu.az);
+    // custom_msg.gx = imu.calcGyro(imu.gy);
+    // custom_msg.gy = -imu.calcGyro(imu.gx);
+    // custom_msg.gz = -imu.calcGyro(imu.gz);
+    // custom_msg.mx = imu.calcMag(imu.my + MAG_Y_OFFSET);
+    // custom_msg.my = -imu.calcMag(imu.mx + MAG_X_OFFSET);
+    // custom_msg.mz = -imu.calcMag(imu.mz + MAG_Z_OFFSET);
+    // custom_msg.ax = imu.calcAccel(imu.ay);
+    // custom_msg.ay = -imu.calcAccel(imu.ax);
+    // custom_msg.az = -imu.calcAccel(imu.az);
 
     pub_custom.publish(&custom_msg);
 
