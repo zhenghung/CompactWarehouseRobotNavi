@@ -26,6 +26,7 @@
 #define MAG_Z_OFFSET 1100
 #define ANG_THRESH 0.4
 
+
 // PHYSICS CONSTANTS
 #define WHEEL_CIRCUMFERENCE 518.36
 #define PULSE_WEIGHT 0.5
@@ -66,6 +67,7 @@ volatile float theta = 0;
 volatile float headingOffset = 0;
 bool leftReverse = false;     // State of the left relay
 bool rightReverse = false;    // State of the right relay
+
 
 // Functions
 void moveForward();
@@ -111,7 +113,6 @@ void moveReverse(float vel_x) {
   turning = false; 
   fwdOrBack = true;
   last_stamp = millis();
-
   analogWrite(BRAKE_PIN, 0);
   leftReverse = true;
   rightReverse = true;
@@ -133,6 +134,7 @@ void moveTurn(float angle) {
     digitalWrite(LEFT_REVERSE, HIGH);
     digitalWrite(RIGHT_REVERSE, LOW);
     analogWrite(PWM_MOVE, DUTY_MIN-1);
+
   } else if (angle < 0) {
     // Turn Right
     leftReverse = false;
@@ -209,6 +211,7 @@ float getHeading(float offset){
   
   float heading;
   heading = atan2(imu.my + MAG_Y_OFFSET, imu.mx + MAG_X_OFFSET);  
+
   heading -= offset;
 
   if (heading > PI) {
@@ -239,12 +242,14 @@ void setup() {
   // imu.begin();
   // headingOffset = getHeading(0);
 
+
   #ifdef DEBUG
     Serial.begin(9600);
   #else
     // ROS
     robot.initNode();
     robot.subscribe(sub_cmd_vel);     //cmd_vel
+
     //broadcaster.init(robot);        //tf
     robot.advertise(pub_custom);      //custom
   #endif
@@ -283,6 +288,7 @@ void loop() {
   #endif
 
   // theta = getHeading(headingOffset);
+
   
   // Check Hall pins of both wheels for Rising Edge
   pollHallPins();
