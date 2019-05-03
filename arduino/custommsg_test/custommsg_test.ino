@@ -17,6 +17,16 @@ void publishMsg(){
   custom_msg.y = 1/1000;
   custom_msg.theta = 1.5;
 
+  custom_msg.gx = 1;
+  custom_msg.gy = 1;
+  custom_msg.gz = 1;
+
+  custom_msg.ax = 2;
+  custom_msg.ay = 2;
+  custom_msg.az = 2;
+
+
+
   pub_custom.publish(&custom_msg);
 
 }
@@ -30,3 +40,4 @@ void loop(){
     publishMsg();
     robot.spinOnce();
 }
+

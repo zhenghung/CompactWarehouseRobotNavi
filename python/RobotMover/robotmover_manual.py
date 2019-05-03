@@ -1,14 +1,10 @@
-import time
 import rospy
-import math
-from pose import Localization 
 from geometry_msgs.msg import Twist
 
 
 class RobotMover:
     def __init__(self):
         rospy.init_node('Mover', anonymous=True)
-        self.robotpose = Localization()
 
     def move_forward(self):
         cmd_vel = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
@@ -17,14 +13,12 @@ class RobotMover:
 
         cmd_vel.publish(move_cmd)
 
-
     def rotate_left(self):
         cmd_vel = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
         move_cmd = Twist()
         move_cmd.angular.z = 1.0
 
         cmd_vel.publish(move_cmd)
-
 
     def rotate_right(self):
         cmd_vel = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
@@ -33,6 +27,12 @@ class RobotMover:
 
         cmd_vel.publish(move_cmd)
 
+    def move_reverse(self):
+        cmd_vel = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
+        move_cmd = Twist()
+        move_cmd.linear.x = -1.0 
+
+        cmd_vel.publish(move_cmd)
 
     def stop(self):
         cmd_vel = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
@@ -44,12 +44,10 @@ if __name__ == '__main__':
     mover = RobotMover()
     mover.move_forward()   # Bug: First publish doesnt work
 
-    instruction=[]
-    while instruction != ['q']:
+    cmd = None
+    while cmd != 'q':
         print "[cmd]: ",
-        instruction = raw_input()
-
-        cmd = instruction
+        cmd = raw_input()
 
         if cmd == 'w':
             mover.move_forward()
@@ -59,6 +57,8 @@ if __name__ == '__main__':
             mover.rotate_right()
         elif cmd == 's':
             mover.stop()
+        elif cmd == 'x':
+            mover.move_reverse()
 
 
 
