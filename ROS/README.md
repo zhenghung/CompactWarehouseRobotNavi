@@ -80,6 +80,12 @@ Due to the placement of the LIDAR, LaserScan registers hits on the simulated rob
 This node has to be launched which will create a `/laser_filtered` topic.
 To view in rviz, change LaserScan topic accordingly.
 
+If a Gazebo simulation is used instead, you can use a different launch file for simulations:
+
+
+    roslaunch warebot_description filter_sim.launch
+
+
 ## Mapping or Creating a map
 Mapping is done via gmapping. We create a map so that the robot can use it for navigation.
 
@@ -110,6 +116,18 @@ Launch `navigation.launch` file.
 
 Use Rviz to set waypoints for navigation or the provided Move Base Action GUI package!
 
+If a map is already loaded, use:
+
+
+    roslaunch warebot_navigation navigation_map.launch
+    
+    
+For simulations, use:
+
+    roslaunch warebot_navigation navigation_map_sim.launch
+    
+    roslaunch warebot_navigation navigation_sim.launch
+
 
 ## Using the Laser Scan Matcher
 This uses the `laser_Scan_matcher` package to improve odometry. Use only when a real LIDAR is used!
@@ -117,6 +135,10 @@ This uses the `laser_Scan_matcher` package to improve odometry. Use only when a 
 To run:
 
     roslaunch warebot_lidar lsm.launch
+    
+To run within a simulation:
+
+    roslaunch warebot_lidar lsm_sim.launch
 
 ## Setting waypoints via a GUI
 Implemented using Tkinter and the ROS Action Library via Python.
@@ -130,3 +152,13 @@ A new window containing the `warehouse_walled` map will appear. Click on any poi
 Currently no feedback is implemented as this is causing holdups. May be changed in the future.
 
 Note: Reminder that move_base has a finite length (3m) for goals! Needs to be fixed, but when close enough, works perfectly.
+
+## Configuturations/Optimisation:
+
+Costmaps/Planners/move_base:
+The `warebot/warebot_navigation/config/` folder contains YAML files.
+
+laser_filter:
+The `warebot/warebot_description/config/` folder contains YAML files.
+
+
