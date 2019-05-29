@@ -1,12 +1,23 @@
 TrajectoryPlannerROS:
-  max_vel_x: 0.5
+  max_vel_x: 0.4
   min_vel_x: 0.1
-  max_vel_theta: 1.5
-  min_in_place_vel_theta: 0.1
+  max_vel_theta: 0.9457
+  min_vel_theta: -0.8966
+  min_in_place_vel_theta: 0.9457
 
-  acc_lim_theta: 1.5
-  acc_lim_x: 1
-  acc_lim_y: 1
+  yaw_goal_tolerance: 1.3156
+  xy_goal_tolerance: 0.2
+  latch_xy_goal_tolerance: true
 
+  sim_time: 3.0
+
+  vx_samples: 20
+  vtheta_samples: 40
 
   holonomic_robot: false
+
+  meter_scoring: true
+
+  pdist_scale: 0.6 #default: 0.6, weighting on how close to the path robot should be, max: 5.0
+  occdist_scale: 0.25 #default: 0.01, weighting on how much robot should avoid obstacles
+  dwa: true #use DWA or Trajectory rollout, default: true

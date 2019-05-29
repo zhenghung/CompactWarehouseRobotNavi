@@ -35,16 +35,14 @@ Note that some worlds require you to have the proper models in Gazebo. Many can 
 
 To view the simulated robot in rviz:
 
-    roslaunch warebot_description rviz_sim.launch
+    roslaunch warebot_description rviz_simgui.launch
 
 The simulated robot will appear in rviz as well as a GUI to control the two differential drive wheels.
 
 You can also run the simulated robot without the controller GUI by running:
 
-    roslaunch warebot_description rviz.launch
+    roslaunch warebot_description rviz_sim.launch
    
- Note: Currently, the real robot also uses the above rviz setup. This will be changed in the future!
-
 
 ## Differential drive movement
 We can now move the robot via `cmd_vel`.
@@ -71,6 +69,19 @@ In a new terminal:
 
 Use WSADX keys to move robot.
 
+# Using the Actual Robot
+It is assumed that a real LIDAR and differential drive is already in place.
+LIDAR needs to publish to `/scan` and differential drive to `/cmd_vel`.
+
+# After initial steps
+
+## Using Rviz
+
+To view the  robot in rviz:
+
+    roslaunch warebot_description rviz.launch
+
+Note that this uses a different URDF model (`real.urdf`) compared to the simulated robot that has the `lidar_generic` frame changed to a blank `laser` frame which is typically needed for a real Lidar as well as removal of the differential drive frames.
 
 ## Filtering the LIDAR
 Due to the placement of the LIDAR, LaserScan registers hits on the simulated robot itself, which complicates mapping. We filter this out using a `laser_filters` node.
@@ -97,10 +108,20 @@ Save map in `warebot_navigation/maps` to save a .pgm and .yaml file.
 
     rosrun map_server map_saver -h <DIRECTORY>
 
+## Using the Laser Scan Matcher
+This uses the `laser_Scan_matcher` package to improve odometry. Use only when a real LIDAR is used!
+Laser Filter is automatically run when you launch the file.
+
+To run:
+
+    roslaunch warebot_lidar lsm.launch
+
 ## Navigation
 This allows the robot to autonomously navigate to a waypoint using the navigation stack.
 
-Again, note that the laser has to be filtered beforehand to prevent LaserScan hits on the robot itself from creating an obstacle within the robot itself. This is automatically run when you launch the navigation launch file.
+IMPORTANT: The navigation stack requires a transform between `odom` and `chassis` to be available. In simulations, Gazebo does this automaticallly however when running a real robot, you need the Laser Scan Matcher to provide this transform!
+
+ALso note that the laser has to be filtered beforehand to prevent LaserScan hits on the robot itself from creating an obstacle within the robot itself. LSM's launch file does this.
 
 Launch gazebo and rviz files.
 
@@ -109,14 +130,6 @@ Launch `navigation.launch` file.
     roslaunch warebot_navigation navigation.launch
 
 Use Rviz to set waypoints for navigation or the provided Move Base Action GUI package!
-
-
-## Using the Laser Scan Matcher
-This uses the `laser_Scan_matcher` package to improve odometry. Use only when a real LIDAR is used!
-
-To run:
-
-    roslaunch warebot_lidar lsm.launch
 
 ## Setting waypoints via a GUI
 Implemented using Tkinter and the ROS Action Library via Python.
@@ -130,3 +143,29 @@ A new window containing the `warehouse_walled` map will appear. Click on any poi
 Currently no feedback is implemented as this is causing holdups. May be changed in the future.
 
 Note: Reminder that move_base has a finite length (3m) for goals! Needs to be fixed, but when close enough, works perfectly.
+
+# Steps for autonomous navigation for the real robot
+
+1: Run the lidar:
+
+    roslaunch rplidar_ros rplidar.launch
+    
+2: Launch Rviz
+
+    roslaunch warebot_description rviz.launch
+    
+3: Run the Laser Scan Matcher:
+
+    roslaunch warebot_lidar lsm.launch
+    
+   -Set the LaserScan topic to `/scan_filtered`
+
+3: Launch navigation (move_base and amcl)
+
+    roslaunch warebot_navigation navigation.launch
+    
+4: Set Rviz to show `Map` and `Path` accordingly
+
+5: Set waypoints for goals.
+
+6: Profit

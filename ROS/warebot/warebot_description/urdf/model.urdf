@@ -117,7 +117,7 @@
     </visual>
   </link>
   <!-- LIDAR -->
-  <link name="lidar_generic">
+  <link name="laser">
     <inertial>
       <mass value="0.5"/>
       <origin rpy="0 0 0" xyz="0 0 0"/>
@@ -128,7 +128,7 @@
   <!-- Joints -->
 	<joint name="lidar_base" type="fixed">
 		<parent link="chassis"/>
-		<child link="lidar_generic"/>
+		<child link="laser"/>
 		<origin rpy="0 0 0" xyz="0.15 0 0.09"/>
 		<axis xyz="0 0 1"/>
 	</joint>
@@ -170,11 +170,11 @@
       <wheelTorque>5</wheelTorque>
       <odometrySource>world</odometrySource>
       <publishTf>1</publishTf>
-      <publishOdomTF>true</publishOdomTF>
+      <publishOdomTF>false</publishOdomTF>
     </plugin>
   </gazebo>
   <!-- LIDAR sensor -->
-  <gazebo reference = "lidar_generic">
+  <gazebo reference = "laser">
     <sensor name="lidar_sensor" type="ray">
          <pose>0 0 0 0 0 0</pose>
          <always_on>1</always_on>
@@ -201,8 +201,8 @@
           </noise>
         </ray>
         <plugin name="gazebo_ros_head_hokuyo_controller" filename="libgazebo_ros_laser.so">
-          <topicName>/warebot/laser/scan</topicName>
-          <frameName>lidar_generic</frameName>
+          <topicName>/scan</topicName>
+          <frameName>laser</frameName>
         </plugin>
       </sensor>
   </gazebo>
