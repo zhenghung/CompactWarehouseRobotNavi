@@ -18,8 +18,8 @@
 // CONSTANTS
 #define LEFT_HALL_THRESH 100
 #define RIGHT_HALL_THRESH 100
-#define DUTY_MAX 106
-#define DUTY_MIN 106
+#define DUTY_MAX 105
+#define DUTY_MIN 105
 #define BRAKE_DUTY 255
 #define MAG_X_OFFSET -900 
 #define MAG_Y_OFFSET -300
@@ -132,14 +132,14 @@ void moveTurn(float angle) {
     rightReverse = false;
     digitalWrite(LEFT_REVERSE, HIGH);
     digitalWrite(RIGHT_REVERSE, LOW);
-    analogWrite(PWM_MOVE, DUTY_MIN-1);
+    analogWrite(PWM_MOVE, DUTY_MIN);
   } else if (angle < 0) {
     // Turn Right
     leftReverse = false;
     rightReverse = true;
     digitalWrite(LEFT_REVERSE, LOW);
     digitalWrite(RIGHT_REVERSE, HIGH);
-    analogWrite(PWM_MOVE, DUTY_MIN-2);
+    analogWrite(PWM_MOVE, DUTY_MIN);
   }
 }
 
@@ -178,14 +178,14 @@ void velCallback( const geometry_msgs::Twist& vel) {
     ang_z = 0;
   }
   if (ang_z != 0) {
-    if (fwdOrBack && (abs(millis()-last_stamp)<1000)){
+    if (fwdOrBack && (abs(millis()-last_stamp)<500)){
       moveBrake();
       fwdOrBack = true;
     } else {
       moveTurn(ang_z);
     }
   } else if (vel_x != 0) {
-    if (turning && (abs(millis()-last_stamp)<1000)) {
+    if (turning && (abs(millis()-last_stamp)<500)) {
       moveBrake();
       turning = true;
     } else {
