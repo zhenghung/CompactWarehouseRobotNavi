@@ -144,6 +144,7 @@ void setup()
 
 //  imu.calibrateMag(false);
 //  imu.calibrate(false);
+
   // The above lines will only take effect AFTER calling
   // imu.begin(), which verifies communication with the IMU
   // and turns it on.
@@ -207,6 +208,7 @@ void loop()
   
   //printAttitude(imu.mx - 700, imu.my - 400, imu.mz);
   delay(50);
+
 }
 void getHeading()
 { 

@@ -26,6 +26,7 @@ void publishMsg(){
   custom_msg.az = 2;
 
 
+
   pub_custom.publish(&custom_msg);
 
 }
@@ -39,3 +40,4 @@ void loop(){
     publishMsg();
     robot.spinOnce();
 }
+
