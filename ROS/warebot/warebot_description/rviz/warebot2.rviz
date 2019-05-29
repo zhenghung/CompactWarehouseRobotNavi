@@ -12,8 +12,6 @@ Panels:
         - /Map1
         - /Path1
         - /Polygon1
-        - /Path2
-        - /Map2
       Splitter Ratio: 0.5
     Tree Height: 741
   - Class: rviz/Selection
@@ -98,11 +96,10 @@ Visualization Manager:
       Show Axes: true
       Show Names: true
       Tree:
-        chassis:
-          laser:
-            {}
         odom:
-          {}
+          chassis:
+            laser:
+              {}
       Update Interval: 0
       Value: true
     - Alpha: 1
@@ -120,9 +117,9 @@ Visualization Manager:
       Enabled: true
       Invert Rainbow: false
       Max Color: 255; 255; 255
-      Max Intensity: 0
+      Max Intensity: 15
       Min Color: 0; 0; 0
-      Min Intensity: 0
+      Min Intensity: 9
       Name: LaserScan
       Position Transformer: XYZ
       Queue Size: 10
@@ -133,7 +130,7 @@ Visualization Manager:
       Topic: /scan_filtered
       Unreliable: false
       Use Fixed Frame: true
-      Use rainbow: true
+      Use rainbow: false
       Value: true
     - Alpha: 0.699999988
       Class: rviz/Map
@@ -141,7 +138,7 @@ Visualization Manager:
       Draw Behind: false
       Enabled: true
       Name: Map
-      Topic: /move_base/global_costmap/costmap
+      Topic: /move_base/local_costmap/costmap
       Unreliable: false
       Use Timestamp: false
       Value: true
@@ -176,44 +173,11 @@ Visualization Manager:
       Topic: /move_base/local_costmap/footprint
       Unreliable: false
       Value: true
-    - Alpha: 1
-      Buffer Length: 1
-      Class: rviz/Path
-      Color: 25; 255; 0
-      Enabled: false
-      Head Diameter: 0.300000012
-      Head Length: 0.200000003
-      Length: 0.300000012
-      Line Style: Lines
-      Line Width: 0.0299999993
-      Name: Path
-      Offset:
-        X: 0
-        Y: 0
-        Z: 0
-      Pose Color: 255; 85; 255
-      Pose Style: None
-      Radius: 0.0299999993
-      Shaft Diameter: 0.100000001
-      Shaft Length: 0.100000001
-      Topic: /move_base/NavfnROS/plan
-      Unreliable: false
-      Value: false
-    - Alpha: 0.699999988
-      Class: rviz/Map
-      Color Scheme: costmap
-      Draw Behind: false
-      Enabled: true
-      Name: Map
-      Topic: /move_base/local_costmap/costmap
-      Unreliable: false
-      Use Timestamp: false
-      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
     Default Light: true
-    Fixed Frame: chassis
+    Fixed Frame: odom
     Frame Rate: 30
   Name: root
   Tools:
@@ -234,25 +198,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 12.4716148
+      Distance: 24.9036827
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -0.147535384
-        Y: 0.0911756009
-        Z: -0.0622554347
+        X: 0
+        Y: 0
+        Z: 0
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.0500000007
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 1.53479636
+      Pitch: 1.56979632
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 1.54493368
+      Yaw: 3.08675909
     Saved: ~
 Window Geometry:
   Displays:

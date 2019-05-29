@@ -1,8 +1,9 @@
 obstacle_range: 4.0
 raytrace_range: 5.0
 #footprint: [[x0, y0], [x1, y1], ... [xn, yn]]
-robot_radius: 0.25 # distance a circular robot should be clear of the obstacle
-inflation_radius: 0.25
+robot_radius: 0.3 # distance a circular robot should be clear of the obstacle
+inflation_radius: 0.9
+cost_scaling_factor: 2.0
 
 observation_sources: laser_scan_sensor #point_cloud_sensor
 

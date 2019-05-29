@@ -2,8 +2,8 @@
 <launch>
 
   <node pkg="laser_filters" type="scan_to_scan_filter_chain" name="laser_filter">
-    <rosparam command="load" file="$(find warebot_description)/config/laser_config.yaml" />
-    <remap from="/scan" to="warebot/laser/scan"/>
+    <rosparam command="load" file="$(find warebot_description)/config/laser_config_sim.yaml" />
+    <remap from="/scan" to="/scan"/>
   </node>
 
 </launch>
